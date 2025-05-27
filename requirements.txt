@@ -1,0 +1,5 @@
+tenacity
+requests
+pillow
+torch
+numpy 
