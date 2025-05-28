@@ -28,40 +28,48 @@ This log documents the development and troubleshooting process for the custom AP
 
 4.  **Midjourney Proxy Node (`Leon_Midjourney_Proxy_API_Node`):**
     *   Implemented as a standalone class due to its different API interaction pattern (submit task, then poll for results).
-    *   **Inputs**: `mj_proxy_endpoint`, `prompt`, `bot_type`, `polling_interval_seconds`, `max_polling_attempts`, optional `ref_image_base64`, optional `notify_hook`.
-    *   **Outputs**: `image` (RGBA tensor), `image_url`, `task_id`.
+    *   **Inputs**: Initially `mj_proxy_endpoint`, `prompt`, `bot_type`, etc. Refactored to include `mj_api_secret`, `x_api_key`, `account_filter_remark`, `base64_array_json` based on detailed API examples.
+    *   **Outputs**: `image` (RGBA tensor), `image_url`, `task_id`. Refactored to add `final_prompt_from_api` and `message_hash`.
     *   **Logic**:
-        *   Submits an `/mj/submit/imagine` request to the proxy.
-        *   Handles `base64Array` for reference images, formatting raw base64 strings into data URIs.
-        *   Polls the `/mj/task/{id}/fetch` endpoint for task status.
+        *   Submits an `/mj/submit/imagine` request to the proxy using appropriate headers (`mj-api-secret`, `X-Api-Key`) and payload (`accountFilter`, `base64Array`).
+        *   Polls the `/mj/task/{id}/fetch` endpoint for task status, ensuring headers are also sent for these calls.
         *   Handles `SUCCESS` (downloads image, converts to RGBA tensor) and `FAILURE` states.
-        *   Raises an error if the task enters a `MODAL` state, as this node is not designed for modal interactions.
-        *   Includes a timeout mechanism for polling.
-    *   Uses a local helper `_pil_to_rgba_tensor` for image processing.
+        *   Extracts and returns `finalPrompt` and `messageHash` from the task data upon success.
 
-5.  **Node Registration:**
-    *   All nodes are registered in `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` at the end of `leon_api_node.py` for ComfyUI to discover them.
+5.  **Image Utility Node (`Leon_Image_Split_4Grid_Node`):**
+    *   Created to split a 2x2 grid image into four separate image outputs (TL, TR, BL, BR).
+    *   Input: Single image tensor.
+    *   Outputs: Four image tensors.
+    *   Placed in a new category: `Leon_Utils`.
+
+6.  **String Utility Node (`Leon_String_Combine_Node`):**
+    *   Created to combine two strings with a user-defined linking element.
+    *   Inputs: `string_1`, `string_2`, `linking_element` (defaults to a space).
+    *   Output: `combined_string`.
+    *   Placed in a new category: `Leon_Utils`.
+
+7.  **Node Registration & `__init__.py`:**
+    *   All nodes are registered in `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` at the end of `leon_api_node.py`.
+    *   **Crucially**, these mappings must also be correctly updated in the project's root `__init__.py` file for ComfyUI to discover all nodes, especially after adding new ones like the image split and string combine nodes. Failure to do so was a cause for new nodes not appearing.
 
 ### Troubleshooting: Nodes Not Appearing in ComfyUI
 
-**Symptom**: After adding new nodes (`Leon_Luma_AI_Image_API_Node`, `Leon_Midjourney_Proxy_API_Node`), only the original `Leon_Google_Image_API_Node` was visible in the ComfyUI interface despite restarts and browser refreshes.
+**Symptom**: After adding new nodes, they were sometimes not visible in ComfyUI.
 
-**Troubleshooting Steps Taken (and learned lessons):**
+**Troubleshooting Steps Taken:**
 
-1.  **Standard Checks (Initial thoughts - always good to re-verify):**
-    *   **Hard Browser Refresh**: `Ctrl+Shift+R` (or `Cmd+Shift+R`) to clear browser cache. (Tried)
-    *   **ComfyUI Console Errors**: Checked the terminal output when ComfyUI starts for any Python errors during node loading. (Advised)
-    *   **`__pycache__` Deletion**: Python bytecode caching can sometimes serve stale versions. Deleting `__pycache__` in the custom node directory and restarting ComfyUI is a crucial step. (Advised & Performed by user)
-    *   **File Location**: Confirmed `leon_api_node.py` was in the correct `custom_nodes` subdirectory. (Implicitly confirmed)
-    *   **Node Mapping Correctness**: Double-checked `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` for typos or omissions. (Initially okay, but reviewed)
+1.  **Standard Checks**: Hard browser refresh, checking ComfyUI console errors, deleting `__pycache__` folders (in the node directory, custom_nodes directory, and even the main ComfyUI directory).
+2.  **Node Definition Review**: Ensuring `CATEGORY`, `RETURN_TYPES`, `RETURN_NAMES`, `FUNCTION`, and `INPUT_TYPES` were explicitly and correctly defined in each node class.
+3.  **`__init__.py` Verification**: **This was a key recurring point.** Ensuring that `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` in the main `__init__.py` of the custom node package were updated with *every* new node. Importing with `from .leon_api_node import *` is not enough; the mappings need to be explicitly maintained in `__init__.py` as well for ComfyUI's loader.
 
-2.  **Deep Dive into Node Definitions (When standard checks weren't enough):**
-    *   **Problem Hypothesis**: If ComfyUI successfully loads the file but fails to register specific classes as nodes, it might be due to issues within the class definitions themselves, how they are structured, or how ComfyUI's loader interprets them (especially with inheritance).
-    *   **Solution Attempted & Successful**: Explicitly defining `CATEGORY`, `RETURN_TYPES`, `RETURN_NAMES`, and `FUNCTION` class attributes within *each* derived node class (`Leon_Google_Image_API_Node`, `Leon_Luma_AI_Image_API_Node`) instead of relying solely on inheritance from `HyprLabImageGenerationNodeBase`.
-        *   **Reasoning**: While inheritance *should* work, making these critical registration attributes explicit in each node class can improve robustness for ComfyUI's loader, removing ambiguity.
-    *   **Simplified Optional Parameter Handling**: In `Leon_Luma_AI_Image_API_Node`, the logic for constructing the payload with optional parameters was slightly simplified to directly check the provided arguments. This was a minor refinement, likely not the primary cause of the visibility issue but good for clarity.
+**Outcome of Troubleshooting**: Consistent application of cache clearing and meticulous updates to both `leon_api_node.py` mappings and `__init__.py` mappings resolved visibility issues.
 
-**Outcome of Troubleshooting**: After explicitly defining the class attributes in the derived nodes and ensuring `__pycache__` was cleared, all nodes appeared correctly in ComfyUI.
+### Key Takeaways for Future Development
+
+*   **`__init__.py` is CRITICAL**: For custom node packages, `__init__.py` is not just for imports. ComfyUI relies on its `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` to discover nodes. *Always update it when adding or renaming nodes.*
+*   **Cache Clearing**: Aggressively clear `__pycache__` (in multiple relevant locations) and browser cache when nodes don't appear or update.
+*   **Explicit Node Attributes**: Be explicit with node registration attributes in each class.
+*   **Console Logging**: Use `print()` statements in your node file during development (e.g., at import time, before class definitions, in `__init__` methods of nodes) to trace execution if ComfyUI has trouble loading them. Check the ComfyUI console.
 
 ### Key Takeaways for Future Development
 

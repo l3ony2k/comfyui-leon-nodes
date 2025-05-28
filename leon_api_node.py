@@ -283,8 +283,8 @@ class Leon_Luma_AI_Image_API_Node(HyprLabImageGenerationNodeBase):
 
 class Leon_Midjourney_Proxy_API_Node:
     CATEGORY = "Leon_API"
-    RETURN_TYPES = ("IMAGE", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("image", "image_url", "task_id", "final_prompt_from_api")
+    RETURN_TYPES = ("IMAGE", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("image", "image_url", "task_id", "final_prompt_from_api", "message_hash")
 
     def __init__(self):
         pass
@@ -429,8 +429,9 @@ class Leon_Midjourney_Proxy_API_Node:
             progress = task_data.get("progress", "N/A")
             fail_reason = task_data.get("failReason")
             final_prompt_from_api = task_data.get("finalPrompt", task_data.get("promptEn", prompt)) # Get final prompt, fallback to original
+            message_hash = task_data.get("properties", {}).get("messageHash", task_data.get("messageHash", ""))
 
-            print(f"MJ Proxy: Task {task_id} status: {status}, Progress: {progress}, Final Prompt: {final_prompt_from_api}")
+            print(f"MJ Proxy: Task {task_id} status: {status}, Progress: {progress}, Final Prompt: {final_prompt_from_api}, Hash: {message_hash}")
 
             if status == "SUCCESS":
                 if not image_url:
@@ -442,7 +443,7 @@ class Leon_Midjourney_Proxy_API_Node:
                     img_download_response.raise_for_status()
                     pil_img = Image.open(io.BytesIO(img_download_response.content))
                     img_tensor = self._pil_to_rgba_tensor(pil_img)
-                    return (img_tensor, image_url, task_id, final_prompt_from_api)
+                    return (img_tensor, image_url, task_id, final_prompt_from_api, message_hash)
                 except Exception as e:
                     raise Exception(f"Failed to download or process image from {image_url}: {str(e)}")
 
@@ -459,15 +460,106 @@ class Leon_Midjourney_Proxy_API_Node:
         raise Exception("Midjourney polling finished unexpectedly (should have returned or raised an error within the loop).")
 
 
+class Leon_Image_Split_4Grid_Node:
+    CATEGORY = "Leon_Utils" # Changed category
+    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "IMAGE")
+    RETURN_NAMES = ("image_TL", "image_TR", "image_BL", "image_BR")
+    FUNCTION = "split_image_grid"
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "image": ("IMAGE",), # Input image
+            }
+        }
+
+    def _tensor_to_pil(self, tensor_image):
+        # Assuming tensor_image is (B, H, W, C) and we take the first image if batched
+        if tensor_image.ndim == 4:
+            tensor_image = tensor_image[0]
+        # Convert CHW to HWC if needed (though ComfyUI IMAGE is usually HWC)
+        # tensor_image = tensor_image.permute(1, 2, 0) # If CHW
+        np_image = (tensor_image.cpu().numpy() * 255).astype(np.uint8)
+        pil_image = Image.fromarray(np_image, 'RGBA' if np_image.shape[-1] == 4 else 'RGB')
+        return pil_image
+
+    def _pil_to_rgba_tensor(self, pil_img):
+        pil_img = pil_img.convert("RGBA")
+        img_array = np.array(pil_img).astype(np.float32) / 255.0
+        if img_array.ndim == 3 and img_array.shape[-1] == 3:
+            alpha_channel = np.ones_like(img_array[..., :1])
+            img_array = np.concatenate((img_array, alpha_channel), axis=-1)
+        return torch.from_numpy(img_array).unsqueeze(0)
+
+    def split_image_grid(self, image):
+        if image is None:
+            raise ValueError("Input image cannot be None for splitting.")
+        
+        pil_image = self._tensor_to_pil(image)
+        pil_image = pil_image.convert("RGBA") # Ensure it's RGBA before processing
+
+        width, height = pil_image.size
+        mid_w, mid_h = width // 2, height // 2
+
+        # Define crop boxes (left, upper, right, lower)
+        box_tl = (0, 0, mid_w, mid_h)
+        box_tr = (mid_w, 0, width, mid_h)
+        box_bl = (0, mid_h, mid_w, height)
+        box_br = (mid_w, mid_h, width, height)
+
+        img_tl = pil_image.crop(box_tl)
+        img_tr = pil_image.crop(box_tr)
+        img_bl = pil_image.crop(box_bl)
+        img_br = pil_image.crop(box_br)
+
+        tensor_tl = self._pil_to_rgba_tensor(img_tl)
+        tensor_tr = self._pil_to_rgba_tensor(img_tr)
+        tensor_bl = self._pil_to_rgba_tensor(img_bl)
+        tensor_br = self._pil_to_rgba_tensor(img_br)
+
+        return (tensor_tl, tensor_tr, tensor_bl, tensor_br)
+
+
+class Leon_String_Combine_Node:
+    CATEGORY = "Leon_Utils" # Changed category
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("combined_string",)
+    FUNCTION = "combine_strings"
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "string_1": ("STRING", {"multiline": True, "default": ""}),
+                "string_2": ("STRING", {"multiline": True, "default": ""}),
+                "linking_element": ("STRING", {"multiline": False, "default": " "}) # Default to a space
+            }
+        }
+
+    def combine_strings(self, string_1, string_2, linking_element):
+        return (f"{string_1}{linking_element}{string_2}",)
+
+
 # Node class mappings for ComfyUI discovery
 NODE_CLASS_MAPPINGS = {
     "Leon_Google_Image_API_Node": Leon_Google_Image_API_Node,
     "Leon_Luma_AI_Image_API_Node": Leon_Luma_AI_Image_API_Node,
     "Leon_Midjourney_Proxy_API_Node": Leon_Midjourney_Proxy_API_Node,
+    "Leon_Image_Split_4Grid_Node": Leon_Image_Split_4Grid_Node,
+    "Leon_String_Combine_Node": Leon_String_Combine_Node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_Google_Image_API_Node": "Leon Google Image API",
     "Leon_Luma_AI_Image_API_Node": "Leon Luma AI Image API",
     "Leon_Midjourney_Proxy_API_Node": "Leon Midjourney Proxy API",
+    "Leon_Image_Split_4Grid_Node": "Leon Image Split 4-Grid",
+    "Leon_String_Combine_Node": "Leon String Combine",
 } 
