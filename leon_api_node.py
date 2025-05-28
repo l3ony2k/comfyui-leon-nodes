@@ -217,7 +217,7 @@ class Leon_Luma_AI_Image_API_Node(HyprLabImageGenerationNodeBase):
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "A stunning fantasy landscape", "tooltip": "Main text input to guide the generation process (max 10,000 characters)"}),
                 "model": (["photon", "photon-flash"], {"default": "photon", "tooltip": "Luma AI model to use for generation"}),
-                 "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
+                "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results (may not be used by Luma API via HyprLab)"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your HyprLab API key"}),
@@ -242,7 +242,7 @@ class Leon_Luma_AI_Image_API_Node(HyprLabImageGenerationNodeBase):
         api_url,
         api_key,
         response_format,
-        aspect_ratio="1:1", # Default from INPUT_TYPES
+        aspect_ratio="1:1",
         image_reference_url="",
         image_reference_weight=0.5,
         style_reference_url="",
@@ -251,10 +251,8 @@ class Leon_Luma_AI_Image_API_Node(HyprLabImageGenerationNodeBase):
     ):
         if len(prompt) > 10000:
             raise ValueError("Prompt must not exceed 10,000 characters")
-        # Luma might allow empty prompt if image_reference_url is provided, but docs say prompt is required.
         if not prompt.strip() and not image_reference_url.strip() and not style_reference_url.strip() and not character_reference_url.strip():
              raise ValueError("Prompt is required for Luma AI, or at least one reference URL must be provided.")
-
 
         payload = {
             "model": model,
@@ -263,7 +261,8 @@ class Leon_Luma_AI_Image_API_Node(HyprLabImageGenerationNodeBase):
             "output_format": output_format
         }
 
-        if aspect_ratio and aspect_ratio != self.INPUT_TYPES()["optional"]["aspect_ratio"]["default"]: # Only add if not default or specified
+        # Always add aspect_ratio as it's a selection with a default value in the UI.
+        if aspect_ratio: # This will always be true since aspect_ratio is a dropdown choice
              payload["aspect_ratio"] = aspect_ratio
         
         if image_reference_url.strip():
@@ -276,7 +275,7 @@ class Leon_Luma_AI_Image_API_Node(HyprLabImageGenerationNodeBase):
 
         if character_reference_url.strip():
             payload["character_reference_url"] = character_reference_url.strip()
-            # No corresponding weight in docs example, so not adding.
+            # No corresponding weight for character_reference_url in HyprLab's Luma docs example
 
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 

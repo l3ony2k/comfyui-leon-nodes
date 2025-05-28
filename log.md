@@ -74,15 +74,17 @@ This log documents the development and troubleshooting process for the custom AP
 
 **Outcome of Troubleshooting**: Consistent application of cache clearing and meticulous updates to both `leon_api_node.py` mappings and `__init__.py` mappings resolved visibility issues.
 
+### Bug Fixes During Development
+
+*   **`TypeError` in `Leon_Luma_AI_Image_API_Node`**: Corrected an issue where the default `aspect_ratio` was being accessed incorrectly from the `INPUT_TYPES` tuple. The access method `self.INPUT_TYPES()["optional"]["aspect_ratio"]["default"]` was changed to `self.INPUT_TYPES()["optional"]["aspect_ratio"][1]["default"]` to correctly index the dictionary within the tuple.
+*   **Luma AI Node Payload Omission**: Fixed an issue in `Leon_Luma_AI_Image_API_Node` where the `aspect_ratio` was not being added to the API request payload if its value was the same as the default. The logic was changed to always include the `aspect_ratio` from the UI in the payload.
+
 ### Key Takeaways for Future Development
 
 *   **`__init__.py` is CRITICAL**: For custom node packages, `__init__.py` is not just for imports. ComfyUI relies on its `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` to discover nodes. *Always update it when adding or renaming nodes.*
 *   **Cache Clearing**: Aggressively clear `__pycache__` (in multiple relevant locations) and browser cache when nodes don't appear or update.
 *   **Explicit Node Attributes**: Be explicit with node registration attributes in each class.
 *   **Console Logging**: Use `print()` statements in your node file during development (e.g., at import time, before class definitions, in `__init__` methods of nodes) to trace execution if ComfyUI has trouble loading them. Check the ComfyUI console.
-
-### Key Takeaways for Future Development
-
 *   **Clear `__pycache__`**: This is often a first-line fix for custom node update issues in ComfyUI.
 *   **Explicit Node Attributes**: For node registration attributes (`CATEGORY`, `RETURN_TYPES`, `RETURN_NAMES`, `FUNCTION`, `INPUT_TYPES`), while inheritance is a good Python practice, being explicit in each node class can prevent subtle loading issues with ComfyUI.
 *   **Console Errors are Gold**: Always check the ComfyUI startup console for Python errors. They often point directly to the problematic code in a custom node file.
