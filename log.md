@@ -48,9 +48,19 @@ This log documents the development and troubleshooting process for the custom AP
     *   Output: `combined_string`.
     *   Placed in a new category: `Leon_Utils`.
 
-7.  **Node Registration & `__init__.py`:**
+7.  **FLUX Image API Node (`Leon_Flux_Image_API_Node`):**
+    *   Inherits from `HyprLabImageGenerationNodeBase`.
+    *   Supports multiple FLUX model variants (`FLUX 1.1 Pro Ultra`, `FLUX 1.1 Pro`, `FLUX Pro Canny`, `FLUX Dev`, `FLUX Schnell`) via HyprLab, based on [HyprLab Black Forest Labs Docs](https://docs.hyprlab.io/browse-models/model-list/black-forest-labs).
+    *   Default model set to `FLUX 1.1 Pro`.
+    *   **Inputs**: `model_choice`, `prompt`, `response_format`, `output_format`, `seed`, `api_url`, `api_key`, and optional model-specific parameters (`image_prompt`, `image_prompt_strength`, `aspect_ratio`, `raw`, `steps`, `height`, `width`) with tooltips indicating applicability.
+    *   Dynamically constructs the API payload based on the selected FLUX model variant, mapping display names to specific API model strings (e.g., `flux-1.1-pro-ultra`, `flux-1.1-pro`, `flux-pro-canny`, `flux-dev`, `flux-schnell`).
+    *   `FLUX Pro Canny` assumes similar parameters to `FLUX 1.1 Pro` (including `image_prompt`, `steps`, `height`, `width`).
+    *   Includes validation for `height` and `width` (must be multiples of 32) for relevant models.
+    *   Placed in the `Leon_API` category.
+
+8.  **Node Registration & `__init__.py`:**
     *   All nodes are registered in `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` at the end of `leon_api_node.py`.
-    *   **Crucially**, these mappings must also be correctly updated in the project's root `__init__.py` file for ComfyUI to discover all nodes, especially after adding new ones like the image split and string combine nodes. Failure to do so was a cause for new nodes not appearing.
+    *   **Crucially**, these mappings must also be correctly updated in the project's root `__init__.py` file for ComfyUI to discover all nodes, especially after adding new ones like the image split, string combine, and FLUX nodes. Failure to do so was a cause for new nodes not appearing.
 
 ### Troubleshooting: Nodes Not Appearing in ComfyUI
 

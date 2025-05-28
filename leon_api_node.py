@@ -300,12 +300,12 @@ class Leon_Midjourney_Proxy_API_Node:
                 }),
                 "mj_api_secret": ("STRING", {
                     "multiline": False,
-                    "default": "sk-midjourney", # Your example secret
+                    "default": "sk-midjourney", 
                     "tooltip": "Your mj-api-secret for the proxy"
                 }),
                 "x_api_key": ("STRING", {
                     "multiline": False,
-                    "default": "sk-midjourney", # Your example key
+                    "default": "sk-midjourneyke", 
                     "tooltip": "Your X-Api-Key for the proxy (if different from mj-api-secret)"
                 }),
                 "prompt": ("STRING", {
@@ -537,14 +537,108 @@ class Leon_String_Combine_Node:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "string_1": ("STRING", {"multiline": True, "default": ""}),
-                "string_2": ("STRING", {"multiline": True, "default": ""}),
-                "linking_element": ("STRING", {"multiline": False, "default": " "}) # Default to a space
+                "string_1": ("STRING", {"multiline": False, "default": ""}),
+                "string_2": ("STRING", {"multiline": False, "default": ""}),
+                "linking_element": ("STRING", {"multiline": False, "default": ""})
             }
         }
 
     def combine_strings(self, string_1, string_2, linking_element):
         return (f"{string_1}{linking_element}{string_2}",)
+
+
+class Leon_Flux_Image_API_Node(HyprLabImageGenerationNodeBase):
+    CATEGORY = "Leon_API"
+    RETURN_TYPES = ("IMAGE", "STRING", "INT")
+    RETURN_NAMES = ("image", "image_url", "seed")
+    FUNCTION = "generate_flux_image"
+
+    MODEL_MAPPING = {
+        "FLUX 1.1 Pro Ultra": "flux-1.1-pro-ultra",
+        "FLUX 1.1 Pro": "flux-1.1-pro",
+        "FLUX Pro Canny": "flux-pro-canny",
+        "FLUX Dev": "flux-dev",
+        "FLUX Schnell": "flux-schnell"
+    }
+
+    ASPECT_RATIOS_ULTRA = ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16", "9:21"]
+
+    def __init__(self):
+        super().__init__()
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "model_choice": (list(cls.MODEL_MAPPING.keys()), {"default": "FLUX 1.1 Pro"}),
+                "prompt": ("STRING", {"multiline": True, "default": "A stunning artistic photo"}),
+                "response_format": (["url", "b64_json"], {"default": "url"}),
+                "output_format": (["png", "jpeg", "webp"], {"default": "png"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations"}),
+                "api_key": ("STRING", {"multiline": False, "default": "YOUR_HYPRLAB_API_KEY"}),
+            },
+            "optional": {
+                "image_prompt": ("STRING", {"multiline": False, "default": "", "tooltip": "URL for image guidance (FLUX 1.1 Pro Ultra, FLUX 1.1 Pro, FLUX Pro Canny)"}),
+                "image_prompt_strength": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Strength of image_prompt (FLUX 1.1 Pro Ultra only)"}),
+                "aspect_ratio": (cls.ASPECT_RATIOS_ULTRA, {"default": "1:1", "tooltip": "Aspect ratio (FLUX 1.1 Pro Ultra only)"}),
+                "raw": ("BOOLEAN", {"default": False, "tooltip": "Return raw output (FLUX 1.1 Pro Ultra only)"}),
+                "steps": ("INT", {"default": 20, "min": 1, "max": 50, "tooltip": "Number of steps (FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell)"}),
+                "height": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "tooltip": "Image height, multiple of 32 (FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell)"}),
+                "width": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "tooltip": "Image width, multiple of 32 (FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell)"}),
+            }
+        }
+
+    def generate_flux_image(self, model_choice, prompt, response_format, output_format, seed, api_url, api_key,
+                              image_prompt="", image_prompt_strength=0.5, aspect_ratio="1:1", raw=False,
+                              steps=20, height=1024, width=1024):
+
+        actual_model_name = self.MODEL_MAPPING.get(model_choice)
+        if not actual_model_name:
+            raise ValueError(f"Invalid model choice: {model_choice}. Available: {list(self.MODEL_MAPPING.keys())}")
+
+        payload = {
+            "model": actual_model_name,
+            "prompt": prompt,
+            "response_format": response_format,
+            "output_format": output_format,
+        }
+
+        if not prompt.strip():
+            raise ValueError("Prompt must be a non-empty string.")
+
+        # Parameters for FLUX 1.1 Pro Ultra
+        if model_choice == "FLUX 1.1 Pro Ultra":
+            if image_prompt.strip():
+                payload["image_prompt"] = image_prompt.strip()
+            payload["image_prompt_strength"] = image_prompt_strength
+            if aspect_ratio != self.INPUT_TYPES()["optional"]["aspect_ratio"]["default"]:
+                 payload["aspect_ratio"] = aspect_ratio
+            payload["raw"] = raw
+
+        # Parameters for FLUX 1.1 Pro or FLUX Pro Canny
+        elif model_choice in ["FLUX 1.1 Pro", "FLUX Pro Canny"]:
+            if image_prompt.strip():
+                payload["image_prompt"] = image_prompt.strip()
+            payload["steps"] = steps
+            payload["height"] = height
+            payload["width"] = width
+
+        # Parameters for FLUX Dev or FLUX Schnell
+        elif model_choice in ["FLUX Dev", "FLUX Schnell"]:
+            payload["steps"] = steps
+            payload["height"] = height
+            payload["width"] = width
+
+        # Validate height and width being multiples of 32 for relevant models
+        if model_choice in ["FLUX 1.1 Pro", "FLUX Pro Canny", "FLUX Dev", "FLUX Schnell"]:
+            if height % 32 != 0:
+                raise ValueError(f"Height must be a multiple of 32 for {model_choice}. Got {height}.")
+            if width % 32 != 0:
+                raise ValueError(f"Width must be a multiple of 32 for {model_choice}. Got {width}.")
+
+        return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
 
 # Node class mappings for ComfyUI discovery
@@ -554,6 +648,7 @@ NODE_CLASS_MAPPINGS = {
     "Leon_Midjourney_Proxy_API_Node": Leon_Midjourney_Proxy_API_Node,
     "Leon_Image_Split_4Grid_Node": Leon_Image_Split_4Grid_Node,
     "Leon_String_Combine_Node": Leon_String_Combine_Node,
+    "Leon_Flux_Image_API_Node": Leon_Flux_Image_API_Node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -562,4 +657,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_Midjourney_Proxy_API_Node": "Leon Midjourney Proxy API",
     "Leon_Image_Split_4Grid_Node": "Leon Image Split 4-Grid",
     "Leon_String_Combine_Node": "Leon String Combine",
+    "Leon_Flux_Image_API_Node": "Leon FLUX Image API",
 } 
