@@ -89,4 +89,13 @@ This log documents the development and troubleshooting process for the custom AP
 *   **Explicit Node Attributes**: For node registration attributes (`CATEGORY`, `RETURN_TYPES`, `RETURN_NAMES`, `FUNCTION`, `INPUT_TYPES`), while inheritance is a good Python practice, being explicit in each node class can prevent subtle loading issues with ComfyUI.
 *   **Console Errors are Gold**: Always check the ComfyUI startup console for Python errors. They often point directly to the problematic code in a custom node file.
 *   **Iterative Testing**: When adding multiple nodes or complex features, test frequently to catch integration issues early.
-*   **Base Classes for Common Logic**: Using base classes (like `HyprLabImageGenerationNodeBase`) is effective for keeping code DRY when multiple nodes share significant functionality (e.g., interacting with the same API provider under a common path). 
+*   **Base Classes for Common Logic**: Using base classes (like `HyprLabImageGenerationNodeBase`) is effective for keeping code DRY when multiple nodes share significant functionality (e.g., interacting with the same API provider under a common path).
+
+9.  **ImgBB Upload Utility Node (`Leon_ImgBB_Upload_Node`):**
+    *   Created to upload images to ImgBB.
+    *   Inputs: `image` (tensor), `api_key` (string), `expire` (boolean, optional), `expiration_time_seconds` (int, optional).
+    *   Output: `image_url` (string).
+    *   Converts tensor to PIL, saves as PNG to buffer, base64 encodes, and posts to ImgBB API.
+    *   Handles API key validation, expiration parameter, and error responses.
+    *   Placed in the `Leon_Utils` category.
+    *   Added to `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` in both `leon_api_node.py` and the root `__init__.py`. 

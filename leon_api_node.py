@@ -546,6 +546,95 @@ class Leon_String_Combine_Node:
         return (f"{string_1}{linking_element}{string_2}",)
 
 
+class Leon_ImgBB_Upload_Node:
+    CATEGORY = "Leon_Utils"
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("image_url",)
+    FUNCTION = "upload_to_imgbb"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "api_key": ("STRING", {"default": "", "multiline": False, "tooltip": "Your ImgBB API key"}),
+            },
+            "optional": {
+                "expire": ("BOOLEAN", {"default": False, "tooltip": "Set to True to make the image expire"}),
+                "expiration_time_seconds": (
+                    "INT",
+                    {"default": 3600, "min": 60, "max": 15552000, "step": 1, "tooltip": "Expiration time in seconds (e.g., 3600 for 1 hour). Only used if expire is True."},
+                ),
+            }
+        }
+
+    def _tensor_to_pil(self, tensor_image):
+        # Assuming tensor_image is (B, H, W, C) and we take the first image if batched
+        if tensor_image.ndim == 4:
+            tensor_image = tensor_image[0]
+        np_image = (tensor_image.cpu().numpy() * 255).astype(np.uint8)
+        # Ensure image is RGB for PNG saving if it's RGBA (ImgBB might handle alpha, but being explicit is safer for general uploads)
+        # However, saving as PNG with alpha is fine.
+        pil_image = Image.fromarray(np_image, 'RGBA' if np_image.shape[-1] == 4 else 'RGB')
+        return pil_image
+
+    def upload_to_imgbb(self, image, api_key, expire=False, expiration_time_seconds=3600):
+        """
+        Upload an image to ImgBB and return the URL.
+        """
+        if not api_key or not api_key.strip():
+            raise ValueError("ImgBB API Key is required and cannot be empty.")
+
+        pil_image = self._tensor_to_pil(image)
+
+        buffer = io.BytesIO()
+        pil_image.save(buffer, format="PNG") # Save as PNG
+        buffer.seek(0)
+
+        base64_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+        url = f"https://api.imgbb.com/1/upload?key={api_key}"
+        if expire:
+            # ImgBB API expects expiration in seconds, min 60, max 15552000 (6 months)
+            # The input field already has these constraints.
+            url += f"&expiration={expiration_time_seconds}"
+
+        payload = {
+            "image": base64_image,
+        }
+
+        print(f"ImgBB Upload: Posting to {url.split('?key=')[0]}?key=YOUR_API_KEY...") # Don't log key in URL
+        # print(f"ImgBB Upload: Payload keys: {payload.keys()}") # image key is present
+
+        try:
+            response = requests.post(url, data=payload)
+            response.raise_for_status() # Will raise HTTPError for bad responses (4xx or 5xx)
+            result = response.json()
+
+            # Debugging the response structure
+            # print(f"ImgBB Raw Response: {result}")
+
+            if result.get("success") and result.get("data") and result["data"].get("url"):
+                return (result["data"]["url"],)
+            else:
+                error_message = "Unknown error"
+                if result.get("error"):
+                    if isinstance(result["error"], dict):
+                        error_message = result["error"].get("message", "Unknown error from API dictionary")
+                    else: # Sometimes error might be a string
+                        error_message = str(result["error"])
+                elif result.get("status_txt"):
+                     error_message = result.get("status_txt")
+                
+                status_code = result.get("status_code", response.status_code)
+                raise ValueError(f"ImgBB API Error (Code: {status_code}): {error_message}. Full response: {json.dumps(result)}")
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"ImgBB upload request failed: {str(e)}")
+        except Exception as e:
+            # Catch any other exception, including JSONDecodeError if response is not JSON
+            raise ValueError(f"ImgBB upload error: {str(e)}. Response text (if available): {response.text if 'response' in locals() else 'N/A'}")
+
+
 class Leon_Flux_Image_API_Node(HyprLabImageGenerationNodeBase):
     CATEGORY = "Leon_API"
     RETURN_TYPES = ("IMAGE", "STRING", "INT")
@@ -648,6 +737,7 @@ NODE_CLASS_MAPPINGS = {
     "Leon_Image_Split_4Grid_Node": Leon_Image_Split_4Grid_Node,
     "Leon_String_Combine_Node": Leon_String_Combine_Node,
     "Leon_Flux_Image_API_Node": Leon_Flux_Image_API_Node,
+    "Leon_ImgBB_Upload_Node": Leon_ImgBB_Upload_Node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -657,4 +747,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_Image_Split_4Grid_Node": "Leon Image Split 4-Grid",
     "Leon_String_Combine_Node": "Leon String Combine",
     "Leon_Flux_Image_API_Node": "Leon FLUX Image API",
+    "Leon_ImgBB_Upload_Node": "Leon ImgBB Upload",
 } 
