@@ -1,22 +1,7 @@
-from .leon_api_node import *
+# Import consolidated mappings from the .nodes sub-package
+from .nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 
-# Node class mappings for ComfyUI discovery
-NODE_CLASS_MAPPINGS = {
-    "Leon_Google_Image_API_Node": Leon_Google_Image_API_Node,
-    "Leon_Luma_AI_Image_API_Node": Leon_Luma_AI_Image_API_Node,
-    "Leon_Midjourney_Proxy_API_Node": Leon_Midjourney_Proxy_API_Node,
-    "Leon_Image_Split_4Grid_Node": Leon_Image_Split_4Grid_Node,
-    "Leon_String_Combine_Node": Leon_String_Combine_Node,
-    "Leon_Flux_Image_API_Node": Leon_Flux_Image_API_Node,
-    "Leon_ImgBB_Upload_Node": Leon_ImgBB_Upload_Node,
-}
+# Optional: If you want to make other things from .nodes directly available, list them in .nodes.__all__
+# and then you could do `from .nodes import *` if that was desired, but specific is often better.
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "Leon_Google_Image_API_Node": "Leon Google Image API",
-    "Leon_Luma_AI_Image_API_Node": "Leon Luma AI Image API",
-    "Leon_Midjourney_Proxy_API_Node": "Leon Midjourney Proxy API",
-    "Leon_Image_Split_4Grid_Node": "Leon Image Split 4-Grid",
-    "Leon_String_Combine_Node": "Leon String Combine",
-    "Leon_Flux_Image_API_Node": "Leon FLUX Image API",
-    "Leon_ImgBB_Upload_Node": "Leon ImgBB Upload",
-}
+__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

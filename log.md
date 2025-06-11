@@ -98,4 +98,94 @@ This log documents the development and troubleshooting process for the custom AP
     *   Converts tensor to PIL, saves as PNG to buffer, base64 encodes, and posts to ImgBB API.
     *   Handles API key validation, expiration parameter, and error responses.
     *   Placed in the `Leon_Utils` category.
-    *   Added to `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` in both `leon_api_node.py` and the root `__init__.py`. 
+    *   Added to `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` in both `leon_api_node.py` and the root `__init__.py`.
+
+### Major Refactoring: Splitting `leon_api_node.py`
+
+To improve maintainability as the number of nodes grew, `leon_api_node.py` was split into two separate files:
+
+1.  **`api_nodes.py`**: Contains all API-interacting nodes:
+    *   `HyprLabImageGenerationNodeBase` (base class)
+    *   `Leon_Google_Image_API_Node`
+    *   `Leon_Luma_AI_Image_API_Node`
+    *   `Leon_Midjourney_Proxy_API_Node`
+    *   `Leon_Flux_Image_API_Node`
+    *   This file includes its own `API_NODE_CLASS_MAPPINGS` and `API_NODE_DISPLAY_NAME_MAPPINGS` specific to these nodes.
+
+2.  **`utility_nodes.py`**: Contains all utility nodes:
+    *   `Leon_Image_Split_4Grid_Node`
+    *   `Leon_String_Combine_Node`
+    *   `Leon_ImgBB_Upload_Node`
+    *   This file includes its own `UTIL_NODE_CLASS_MAPPINGS` and `UTIL_NODE_DISPLAY_NAME_MAPPINGS` specific to these nodes.
+
+3.  **`__init__.py` Update**: The main `__init__.py` for the `comfyui-leon-nodes` package was updated to:
+    *   Import `API_NODE_CLASS_MAPPINGS`, `API_NODE_DISPLAY_NAME_MAPPINGS` from `.api_nodes`.
+    *   Import `UTIL_NODE_CLASS_MAPPINGS`, `UTIL_NODE_DISPLAY_NAME_MAPPINGS` from `.utility_nodes`.
+    *   The global `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` are now constructed by merging the mappings from these two files (e.g., `NODE_CLASS_MAPPINGS = {**API_NODE_CLASS_MAPPINGS, **UTIL_NODE_CLASS_MAPPINGS}`).
+    *   Added `__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']`.
+
+4.  **Deletion**: The original `leon_api_node.py` file was deleted after its contents were successfully migrated.
+
+This refactoring organizes the codebase more logically and makes it easier to manage and extend different types of nodes separately.
+
+10. **FLUX Kontext API Node (`Leon_Flux_Kontext_API_Node`):**
+    *   Added to `api_nodes.py` and inherits from `HyprLabImageGenerationNodeBase`.
+    *   Supports `flux-kontext-max` and `flux-kontext-pro` models.
+    *   Category: `Leon_API`.
+    *   Display Name: `🤖 Leon FLUX Kontext API`.
+    *   **Inputs**:
+        *   `model`: Dropdown for FLUX Kontext model selection.
+        *   `prompt`: Required string.
+        *   `input_image` (IMAGE, optional): If provided, converted to base64 PNG data URI and sent in payload.
+        *   `aspect_ratio`: Dropdown including `match_input_image` and standard ratios.
+        *   Standard HyprLab inputs: `response_format`, `output_format`, `seed`, `api_url`, `api_key`.
+    *   The `generate_flux_kontext_image` method constructs the payload, including the optional base64 `input_image` and `aspect_ratio`, then calls `_make_api_call`.
+    *   Automatically included in `__init__.py` mappings via the consolidated approach.
+
+11. **Enhanced Image Inputs for Luma and FLUX Nodes:**
+    *   The `_tensor_to_base64_data_uri` helper method was moved from `Leon_Flux_Kontext_API_Node` to the base class `HyprLabImageGenerationNodeBase` for wider use.
+    *   **`Leon_Luma_AI_Image_API_Node` Updates**:
+        *   Added optional IMAGE input sockets:
+            *   `input_image_ref_socket` (for `image_reference_url`)
+            *   `input_style_ref_socket` (for `style_reference_url`)
+            *   `input_char_ref_socket` (for `character_reference_url`)
+        *   The node logic now prioritizes these socket inputs. If an image is provided via a socket, it's converted to a base64 data URI and used for the respective API payload parameter, overriding the corresponding string URL input.
+        *   Tooltips and prompt validation messages were updated.
+    *   **`Leon_Flux_Image_API_Node` Updates**:
+        *   Added an optional IMAGE input socket: `input_image_prompt_socket`.
+        *   The node logic now prioritizes this socket. If an image is provided, it's converted to a base64 data URI and used for the `image_prompt` API parameter, overriding the string URL `image_prompt` input.
+        *   Tooltips were updated.
+
+12. **Streamlined Image Inputs (Socket Only) for Luma and FLUX Nodes:**
+    *   Following the addition of image socket inputs, the corresponding string URL input fields were removed from both `Leon_Luma_AI_Image_API_Node` and `Leon_Flux_Image_API_Node` to simplify the UI and avoid redundancy.
+    *   **`Leon_Luma_AI_Image_API_Node` Changes**:
+        *   Removed `image_reference_url`, `style_reference_url`, and `character_reference_url` string inputs from `INPUT_TYPES` and the `generate_luma_image` method.
+        *   Image data for references now comes exclusively from `input_image_ref_socket`, `input_style_ref_socket`, and `input_char_ref_socket`.
+    *   **`Leon_Flux_Image_API_Node` Changes**:
+        *   Removed the `image_prompt` string input from `INPUT_TYPES` and the `generate_flux_image` method.
+        *   The `image_prompt` payload parameter is now solely derived from `input_image_prompt_socket`.
+        *   Tooltips were updated.
+
+### Project Structure Refactoring (II)
+
+To further improve organization and prepare for more complex node development, the project was restructured:
+
+1.  **`nodes` Subdirectory Created**: A new directory named `nodes` was created at the root of the `comfyui-leon-nodes` package.
+
+2.  **File Relocations & Creation**:
+    *   The existing `api_nodes.py` (containing HyprLab-based API nodes) was moved to `nodes/api_nodes.py`.
+    *   The existing `utility_nodes.py` was moved to `nodes/utility_nodes.py`.
+    *   **`Leon_Midjourney_Proxy_API_Node` Extraction**: This node was moved from `api_nodes.py` into its own dedicated file: `nodes/midjourney_proxy_node.py`. This file now contains the `Leon_Midjourney_Proxy_API_Node` class, its specific imports, and its own mappings (`MJ_PROXY_NODE_CLASS_MAPPINGS`, `MJ_PROXY_NODE_DISPLAY_NAME_MAPPINGS`).
+
+3.  **Updated `nodes/api_nodes.py`**: After moving the Midjourney node, this file was updated to remove its class definition and mappings.
+
+4.  **New `nodes/__init__.py`**: This file was created to act as a central point for aggregating node mappings within the `nodes` subdirectory. It imports:
+    *   `API_NODE_CLASS_MAPPINGS`, `API_NODE_DISPLAY_NAME_MAPPINGS` from `.api_nodes`
+    *   `MJ_PROXY_NODE_CLASS_MAPPINGS`, `MJ_PROXY_NODE_DISPLAY_NAME_MAPPINGS` from `.midjourney_proxy_node`
+    *   `UTIL_NODE_CLASS_MAPPINGS`, `UTIL_NODE_DISPLAY_NAME_MAPPINGS` from `.utility_nodes`
+    It then consolidates these into package-level `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` and exports them via `__all__`.
+
+5.  **Updated Root `__init__.py`**:
+    *   The main `__init__.py` (at `comfyui-leon-nodes/__init__.py`) was simplified to import the consolidated `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS` directly from the `.nodes` sub-package (e.g., `from .nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS`).
+
+This structure provides a clearer separation of node types and makes the project more scalable. 
