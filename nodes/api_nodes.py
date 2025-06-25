@@ -124,7 +124,7 @@ class Leon_Google_Image_API_Node(HyprLabImageGenerationNodeBase):
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "A beautiful landscape with mountains and a lake", "tooltip": "Main text input to guide the generation process (max 10,000 characters)"}),
-                "model": (["imagen-4", "imagen-3", "imagen-3-fast"], {"default": "imagen-4", "tooltip": "Google Imagen model to use for generation"}),
+                "model": (["imagen-4-ultra", "imagen-4", "imagen-4-fast", "imagen-3", "imagen-3-fast"], {"default": "imagen-4-ultra", "tooltip": "Google Imagen model to use for generation"}),
                 "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9"], {"default": "1:1", "tooltip": "Aspect ratio of the generated image"}),
                 "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
