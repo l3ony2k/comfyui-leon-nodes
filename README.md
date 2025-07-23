@@ -1,119 +1,264 @@
 # ComfyUI Leon API Nodes
 
-A custom ComfyUI node for generating images using Google's Imagen models via the HyprLab API.
+A comprehensive collection of ComfyUI custom nodes for AI image generation, LLM chat completions, Midjourney proxy integration, and utility functions via various APIs including HyprLab.
 
 ## Overview
 
-This package provides a custom node called `Leon_Google_Image_API_Node` that integrates Google's Imagen models (imagen-4, imagen-3, imagen-3-fast) into ComfyUI workflows through the HyprLab API service.
+This package provides multiple categories of nodes to enhance your ComfyUI workflows:
 
-## Features
-
-- **Google Imagen Models**: Support for imagen-4, imagen-3, and imagen-3-fast
-- **Multiple Aspect Ratios**: 1:1, 3:4, 4:3, 9:16, 16:9
-- **Output Formats**: PNG, JPEG, WebP
-- **Response Formats**: URL or Base64 JSON
-- **Seed Support**: For reproducible image generation
-- **Error Handling**: Robust retry mechanism with exponential backoff
-- **Validation**: Input validation including prompt length limits (10,000 characters)
+- **🎨 Image Generation APIs**: Google Imagen, Luma AI, FLUX, FLUX Kontext
+- **🤖 LLM APIs**: Chat completions, JSON extraction, model management
+- **🎭 Midjourney Proxy**: Generate, describe, and upload images
+- **🔧 Utility Nodes**: Image processing, string manipulation, file uploads
 
 ## Installation
 
 1. Clone or copy this repository to your ComfyUI custom nodes directory:
-   ```
+   ```bash
    cd ComfyUI/custom_nodes/
    git clone <repository-url> comfyui-leon-nodes
    ```
 
 2. Install the required dependencies:
-   ```
+   ```bash
    pip install -r requirements.txt
    ```
 
 3. Restart ComfyUI
 
-## Usage
+## 🎨 Image Generation Nodes
 
-### Node: Leon Google Image API
+### Leon Google Image API 🤖
+Generate images using Google's Imagen models via HyprLab API.
 
-The main node for generating images with Google's Imagen models.
+**Features:**
+- Models: imagen-4-ultra, imagen-4, imagen-4-fast, imagen-3, imagen-3-fast
+- Aspect ratios: 1:1, 3:4, 4:3, 9:16, 16:9
+- Output formats: PNG, JPEG, WebP
 
-#### Inputs
+**Usage Example:**
+1. Add "Leon Google Image API" node
+2. Enter your HyprLab API key
+3. Write your prompt (max 10,000 characters)
+4. Select model and settings
+5. Connect output to PreviewImage
 
-**Required:**
-- `prompt` (STRING): Main text input to guide image generation (max 10,000 characters)
-- `model` (COMBO): Choose from imagen-4, imagen-3, or imagen-3-fast
-- `aspect_ratio` (COMBO): Select from 1:1, 3:4, 4:3, 9:16, 16:9
-- `output_format` (COMBO): Choose PNG, JPEG, or WebP
-- `seed` (INT): Random seed for reproducible results
-- `api_url` (STRING): HyprLab API base URL (default: https://api.hyprlab.io/v1)
-- `api_key` (STRING): Your HyprLab API key
+### Leon Luma AI Image API 🤖
+Advanced image generation with reference image support.
 
-**Optional:**
-- `response_format` (COMBO): Choose between "url" or "b64_json"
+**Features:**
+- Models: photon, photon-flash
+- Image/style/character reference inputs
+- Flexible aspect ratios including 9:21, 21:9
 
-#### Outputs
+**Usage Example:**
+1. Add "Leon Luma AI Image API" node
+2. Connect reference images (optional)
+3. Set reference weights (0.0-1.0)
+4. Generate with enhanced control
 
-- `image` (IMAGE): Generated image as ComfyUI tensor
-- `image_url` (STRING): Image URL or base64 data URL
-- `seed` (INT): The seed used for generation
+### Leon FLUX Image API 🤖
+High-quality image generation with FLUX models.
 
-## API Configuration
+**Features:**
+- Models: FLUX 1.1 Pro Ultra, FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell
+- Image prompt guidance
+- Flexible dimensions (256-1440px, multiples of 32)
 
-To use this node, you need:
+**Usage Example:**
+1. Select FLUX model variant
+2. Add prompt and optional image guidance
+3. Configure steps, dimensions, aspect ratio
+4. Generate high-quality images
 
-1. **HyprLab API Key**: Sign up at [HyprLab](https://hyprlab.io) to get your API key
-2. **API Access**: The service provides access to Google's Imagen models with a 50% discount
+### Leon FLUX Kontext API 🤖
+Context-aware image generation with input image support.
 
-### Pricing (as per HyprLab documentation)
-- imagen-4: $0.02 per image (50% off)
-- imagen-3: $0.02 per image (50% off)  
-- imagen-3-fast: $0.01 per image (50% off)
+**Features:**
+- Models: flux-kontext-max, flux-kontext-pro
+- Input image context understanding
+- Match input image aspect ratio option
 
-## Example Workflow
+## 🤖 LLM API Nodes
 
-1. Add the "Leon Google Image API" node to your ComfyUI workflow
-2. Enter your API key in the `api_key` field
-3. Write your prompt in the `prompt` field
-4. Select your preferred model, aspect ratio, and output format
-5. Set a seed value if you want reproducible results
-6. Connect the output `image` to a PreviewImage node or other image processing nodes
+### Leon LLM Chat API 🤖
+Text and vision chat completions with various LLM models.
 
-## Error Handling
+**Features:**
+- Support for GPT-4o, Claude, Gemini, and more
+- Vision capabilities (text + image input)
+- Configurable temperature, top_p, max_tokens
+- System message support
 
-The node includes robust error handling:
-- Automatic retry with exponential backoff (up to 5 attempts)
-- Input validation (prompt length, empty prompts)
-- API response validation
-- Network error handling
-- Detailed error messages for debugging
+**Usage Example:**
+```
+Model Selector → LLM Chat API → Text Output
+     ↑              ↑
+  "gpt-4o"    "Analyze this image"
+                     ↑
+                Image Input
+```
 
-## Technical Details
+### Leon LLM JSON API 🤖
+Structured data extraction with JSON schema validation.
 
-- Built using the same patterns as BillBum nodes for consistency
-- Uses `tenacity` for retry logic
-- Supports both URL and base64 response formats
-- Automatically converts images to ComfyUI tensor format
-- Includes proper image format conversion (RGBA)
+**Features:**
+- JSON schema-based output
+- Data extraction and structuring
+- Lower temperature for consistency
+- Schema validation
 
-## Dependencies
+**Usage Example:**
+```json
+Schema: {
+  "type": "object",
+  "properties": {
+    "email": {"type": "string"},
+    "name": {"type": "string"}
+  }
+}
+```
 
-- tenacity: For retry mechanism
-- requests: For HTTP API calls
-- pillow: For image processing
-- torch: For tensor operations
-- numpy: For array operations
+### Leon Model Selector 🔧
+Dynamic model selection with live configuration.
 
-## License
+**Features:**
+- Dropdown with popular models
+- Custom model input override
+- Model information display
+- Context length awareness
 
-This project follows the same license as the reference BillBum nodes.
+### Leon Model Config Loader ⚙️
+Fetch and manage available models from API.
 
-## Support
+**Features:**
+- Live model list fetching
+- Cached fallback configuration
+- Save to file option
+- Error handling with graceful fallback
 
-For issues related to:
-- **API access**: Contact HyprLab support
-- **Node functionality**: Create an issue in this repository
-- **ComfyUI integration**: Check ComfyUI documentation
+## 🎭 Midjourney Proxy Nodes
+
+### Leon Midjourney API Generate 🤖
+Generate images using Midjourney via proxy server.
+
+**Features:**
+- MID_JOURNEY and NIJI_JOURNEY bot types
+- Base64 image array support
+- Account filtering
+- Polling with timeout handling
+
+**Setup:**
+1. Run Midjourney proxy server (e.g., localhost:8080)
+2. Configure API key and endpoint
+3. Use prompts with Midjourney syntax (--v 7, --ar 1:1)
+
+### Leon Midjourney API Describe 🤖
+Get text descriptions of images using Midjourney.
+
+**Features:**
+- Upload image and get 4 description variants
+- Automatic description parsing
+- Same proxy server integration
+
+### Leon Midjourney API Upload 🤖
+Upload images to Discord via Midjourney proxy.
+
+**Features:**
+- Convert ComfyUI images to Discord URLs
+- Account filtering support
+- Direct integration with Midjourney workflows
+
+## 🔧 Utility Nodes
+
+### Leon Image Split 4-Grid 🤖
+Split images into 4 quadrants (useful for Midjourney grid results).
+
+**Outputs:** Top-Left, Top-Right, Bottom-Left, Bottom-Right images
+
+### Leon String Combine 🤖
+Combine two strings with a linking element.
+
+**Usage:** Useful for building complex prompts or file paths
+
+### Leon ImgBB Upload 🤖
+Upload images to ImgBB hosting service.
+
+**Features:**
+- Expiration time control
+- Direct URL output
+- Error handling
+
+### Leon Hypr Upload 🤖
+Upload images/videos to HyprLab hosting.
+
+**Features:**
+- Multiple input methods (tensor, file path, URL, base64)
+- Output format conversion
+- Multipart and JSON upload support
+
+## 🔗 Common Workflow Patterns
+
+### Basic Image Generation
+```
+Model Selector → Google/Luma/FLUX API → PreviewImage
+```
+
+### Vision Analysis
+```
+LoadImage → LLM Chat API → Text Output
+              ↑
+         Model Selector
+```
+
+### Midjourney Grid Processing
+```
+Midjourney Generate → Image Split 4-Grid → 4x PreviewImage
+```
+
+### Data Extraction
+```
+Text Input → LLM JSON API → JSON Output
+              ↑
+         JSON Schema
+```
+
+### Image Upload Chain
+```
+Generated Image → Hypr Upload → URL → Use in other APIs
+```
+
+## 🛠️ Advanced Usage
+
+### Model Management
+```
+Model Config Loader → Save models.json
+Model Selector → Use cached or live models
+```
+
+### Multi-Modal Workflows
+```
+Text + Image → LLM Chat → Analysis
+     ↓
+Generated Image → Midjourney Describe → Descriptions
+     ↓
+Upload → Share URLs
+```
+
+### Batch Processing
+```
+Multiple Prompts → Loop through FLUX API → Collect Results
+```
+
+## 🔧 Error Handling
+
+All nodes include robust error handling:
+- **Retry Logic**: Exponential backoff (up to 5 attempts)
+- **Input Validation**: Prompt lengths, required fields
+- **API Response Validation**: Proper error messages
+- **Network Error Handling**: Graceful degradation
+- **Detailed Logging**: Console output for debugging
 
 ---
 
-Based on the reference implementation from [ComfyUI_BillBum_Nodes](https://github.com/AhBumm/ComfyUI_BillBum_Nodes) and integrated with [HyprLab API](https://docs.hyprlab.io/browse-models/model-list/google/image). 
+**Acknowledge**: [ComfyUI_BillBum_Nodes](https://github.com/AhBumm/ComfyUI_BillBum_Nodes) | **Integrated with**: [HyprLab API](https://docs.hyprlab.io) 
