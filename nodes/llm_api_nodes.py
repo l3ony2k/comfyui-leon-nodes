@@ -6,22 +6,7 @@ import requests
 import json
 import os
 
-# Model configuration - this will be loaded from the models endpoint
-MODELS_CONFIG = {
-    "object": "list",
-    "data": [
-        {"id": "gpt-4o", "object": "model", "created": 1715367049, "owned_by": "openai", "context_length": 128000},
-        {"id": "gpt-4o-mini", "object": "model", "created": 1721172741, "owned_by": "openai", "context_length": 128000},
-        {"id": "claude-3-5-sonnet-latest", "object": "model", "created": 1729555200, "owned_by": "anthropic", "context_length": 200000},
-        {"id": "claude-3-5-haiku-latest", "object": "model", "created": 1729555200, "owned_by": "anthropic", "context_length": 200000},
-        {"id": "gemini-2.0-flash", "object": "model", "created": 1738713600, "owned_by": "google", "context_length": 1048576},
-        {"id": "gemini-1.5-pro", "object": "model", "created": 1716508800, "owned_by": "google", "context_length": 2097152},
-        {"id": "o1", "object": "model", "created": 1734375816, "owned_by": "openai", "context_length": 200000},
-        {"id": "o1-mini", "object": "model", "created": 1725649008, "owned_by": "openai", "context_length": 128000},
-        {"id": "deepseek-chat", "object": "model", "created": 1719532800, "owned_by": "deepseek", "context_length": 64000},
-        {"id": "mistral-large-latest", "object": "model", "created": 1706803200, "owned_by": "mistralai", "context_length": 131072}
-    ]
-}
+
 
 # Base class for HyprLab LLM Nodes
 class HyprLabLLMNodeBase:
@@ -111,6 +96,8 @@ class Leon_LLM_Chat_API_Node(HyprLabLLMNodeBase):
             }
         }
 
+
+
     def chat_completion(self, model, user_message, api_url, api_key, system_message="", max_tokens=1000, temperature=0.7, top_p=1.0, input_image=None):
         if not user_message.strip():
             raise ValueError("User message cannot be empty")
@@ -179,6 +166,8 @@ class Leon_LLM_JSON_API_Node(HyprLabLLMNodeBase):
             }
         }
 
+
+
     def json_completion(self, model, user_message, json_schema, api_url, api_key, system_message="You are a helpful assistant that extracts structured data.", max_tokens=1000, temperature=0.1):
         if not user_message.strip():
             raise ValueError("User message cannot be empty")
@@ -221,6 +210,7 @@ class Leon_LLM_JSON_API_Node(HyprLabLLMNodeBase):
         return (response_text,)
 
 
+
 class Leon_Model_Selector_Node:
     CATEGORY = "Leon_API"
     RETURN_TYPES = ("STRING",)
@@ -232,98 +222,84 @@ class Leon_Model_Selector_Node:
 
     @classmethod
     def INPUT_TYPES(cls):
-        # Extract model IDs from the config
-        model_choices = [model["id"] for model in MODELS_CONFIG["data"]]
+        # Load available models from cached file
+        cached_models = cls._load_cached_models()
+        model_choices = [model["id"] for model in cached_models]  # Include all available models
         
         return {
             "required": {
-                "model_choice": (model_choices, {"default": "gpt-4o", "tooltip": "Select a model from the available options"}),
-            },
-            "optional": {
-                "custom_model": ("STRING", {"default": "", "tooltip": "Enter a custom model name (overrides dropdown selection)"}),
-                "show_model_info": ("BOOLEAN", {"default": False, "tooltip": "Print model information to console"}),
-            }
-        }
-
-    def select_model(self, model_choice, custom_model="", show_model_info=False):
-        # Use custom model if provided, otherwise use dropdown selection
-        selected_model = custom_model.strip() if custom_model.strip() else model_choice
-        
-        if show_model_info:
-            # Find model info in config
-            model_info = None
-            for model in MODELS_CONFIG["data"]:
-                if model["id"] == selected_model:
-                    model_info = model
-                    break
-            
-            if model_info:
-                print(f"Selected Model: {model_info['id']}")
-                print(f"Owner: {model_info['owned_by']}")
-                print(f"Context Length: {model_info['context_length']:,} tokens")
-            else:
-                print(f"Selected Model: {selected_model} (custom/not in config)")
-        
-        return (selected_model,)
-
-
-class Leon_Model_Config_Loader_Node:
-    CATEGORY = "Leon_API"
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("config_json",)
-    FUNCTION = "load_model_config"
-
-    def __init__(self):
-        pass
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
+                "model_choice": (model_choices, {"default": model_choices[0] if model_choices else "gpt-4o", "tooltip": "Select a model from available options"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/models", "tooltip": "API URL to fetch models list"}),
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_HYPRLAB_API_KEY", "tooltip": "Your HyprLab API key"}),
             },
             "optional": {
-                "use_cached": ("BOOLEAN", {"default": True, "tooltip": "Use cached model config instead of fetching from API"}),
-                "save_to_file": ("BOOLEAN", {"default": False, "tooltip": "Save fetched config to models_config.json"}),
+                "fetch_from_endpoint": ("BOOLEAN", {"default": False, "tooltip": "Fetch fresh model list from API endpoint and save to cache"}),
+                "custom_model": ("STRING", {"default": "", "tooltip": "Enter custom model name (overrides dropdown selection)"}),
             }
         }
 
-    def load_model_config(self, api_url, api_key, use_cached=True, save_to_file=False):
-        if use_cached:
-            # Return the hardcoded config
-            config_json = json.dumps(MODELS_CONFIG, indent=2)
-            print("Using cached model configuration")
-            return (config_json,)
+    @classmethod
+    def _load_cached_models(cls):
+        """Load models from cached models_config.json file"""
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        config_file = os.path.join(script_dir, "models_config.json")
         
-        # Fetch from API
+        try:
+            if os.path.exists(config_file):
+                with open(config_file, 'r') as f:
+                    config_data = json.load(f)
+                    return config_data.get('data', [])
+        except Exception as e:
+            print(f"Failed to load cached models: {str(e)}")
+        
+        # Fallback to empty list if file doesn't exist or fails to load
+        return []
+
+    def _fetch_and_save_models(self, api_url, api_key):
+        """Fetch models from API and save to models_config.json"""
         try:
             headers = {
                 "Authorization": f"Bearer {api_key}"
             }
             
+            print(f"Fetching models from: {api_url}")
             response = requests.get(api_url.rstrip('/'), headers=headers)
             response.raise_for_status()
             
             config_data = response.json()
-            config_json = json.dumps(config_data, indent=2)
             
-            if save_to_file:
-                # Save to file in the same directory as this script
-                script_dir = os.path.dirname(os.path.abspath(__file__))
-                config_file = os.path.join(script_dir, "models_config.json")
-                with open(config_file, 'w') as f:
-                    f.write(config_json)
-                print(f"Model config saved to: {config_file}")
+            # Save to file
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            config_file = os.path.join(script_dir, "models_config.json")
             
-            print(f"Fetched {len(config_data.get('data', []))} models from API")
-            return (config_json,)
+            with open(config_file, 'w') as f:
+                json.dump(config_data, f, indent=2)
+            
+            print(f"Successfully fetched and saved {len(config_data.get('data', []))} models to {config_file}")
+            return config_data.get('data', [])
             
         except Exception as e:
-            print(f"Failed to fetch model config from API: {str(e)}")
-            print("Falling back to cached configuration")
-            config_json = json.dumps(MODELS_CONFIG, indent=2)
-            return (config_json,)
+            print(f"Failed to fetch models from API: {str(e)}")
+            print("Using cached models instead")
+            return self._load_cached_models()
+
+    def select_model(self, model_choice, api_url, api_key, fetch_from_endpoint=False, custom_model=""):
+        # If fetch from endpoint is enabled, fetch fresh data
+        if fetch_from_endpoint:
+            available_models = self._fetch_and_save_models(api_url, api_key)
+        else:
+            available_models = self._load_cached_models()
+        
+        # Use custom model if provided, otherwise use dropdown selection
+        selected_model = custom_model.strip() if custom_model.strip() else model_choice
+        
+        # Validate that selected model exists in available models (optional info)
+        model_found = any(model["id"] == selected_model for model in available_models)
+        if not model_found and not custom_model.strip():
+            print(f"Warning: Selected model '{selected_model}' not found in available models list")
+        
+        print(f"Selected model: {selected_model}")
+        return (selected_model,)
 
 
 # Node mappings for ComfyUI
@@ -331,12 +307,10 @@ LLM_NODE_CLASS_MAPPINGS = {
     "Leon_LLM_Chat_API_Node": Leon_LLM_Chat_API_Node,
     "Leon_LLM_JSON_API_Node": Leon_LLM_JSON_API_Node,
     "Leon_Model_Selector_Node": Leon_Model_Selector_Node,
-    "Leon_Model_Config_Loader_Node": Leon_Model_Config_Loader_Node,
 }
 
 LLM_NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_LLM_Chat_API_Node": "🤖 Leon LLM Chat API",
-    "Leon_LLM_JSON_API_Node": "🤖 Leon LLM JSON API", 
+    "Leon_LLM_JSON_API_Node": "🤖 Leon LLM JSON API",
     "Leon_Model_Selector_Node": "🤖 Leon Model Selector",
-    "Leon_Model_Config_Loader_Node": "🤖 Leon Model Config Loader",
 }
