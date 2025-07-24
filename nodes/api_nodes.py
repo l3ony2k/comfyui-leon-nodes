@@ -392,12 +392,224 @@ class Leon_Flux_Kontext_API_Node(HyprLabImageGenerationNodeBase):
 
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
+
+class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
+    CATEGORY = "Leon_API"
+    RETURN_TYPES = ("IMAGE", "STRING", "INT")
+    RETURN_NAMES = ("image", "image_url", "seed")
+    FUNCTION = "generate_bytedance_image"
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": "a cute cat", "tooltip": "Main text input to guide the generation process (max 10,000 characters)"}),
+                "model": (["seedream-3"], {"default": "seedream-3", "tooltip": "ByteDance AI model to use for generation"}),
+                "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
+                "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your HyprLab API key"}),
+                "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "How the response data should be formatted"}),
+            },
+            "optional": {
+                "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "21:9"], {"default": "16:9", "tooltip": "Aspect ratio of the generated image"}),
+                "size": (["small", "regular", "big"], {"default": "regular", "tooltip": "Image dimensions"}),
+                "guidance_scale": ("FLOAT", {"default": 2.5, "min": 1.0, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence. Higher = more literal (1-10)"}),
+            }
+        }
+
+    def generate_bytedance_image(
+        self,
+        prompt,
+        model,
+        output_format,
+        seed,
+        api_url,
+        api_key,
+        response_format,
+        aspect_ratio="16:9",
+        size="regular",
+        guidance_scale=2.5
+    ):
+        if len(prompt) > 10000:
+            raise ValueError("Prompt must not exceed 10,000 characters")
+        if not prompt.strip():
+            raise ValueError("Prompt must be a non-empty string")
+
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "response_format": response_format,
+            "output_format": output_format
+        }
+
+        # Add optional parameters
+        if aspect_ratio:
+            payload["aspect_ratio"] = aspect_ratio
+        if size:
+            payload["size"] = size
+        if guidance_scale:
+            payload["guidance_scale"] = guidance_scale
+        
+        return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
+
+
+class Leon_Ideogram_Image_API_Node(HyprLabImageGenerationNodeBase):
+    CATEGORY = "Leon_API"
+    RETURN_TYPES = ("IMAGE", "STRING", "INT")
+    RETURN_NAMES = ("image", "image_url", "seed")
+    FUNCTION = "generate_ideogram_image"
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": "cat", "tooltip": "Main text input to guide the generation process (max 10,000 characters)"}),
+                "model": (["ideogram-v2", "ideogram-v2-turbo"], {"default": "ideogram-v2", "tooltip": "Ideogram AI model to use for generation"}),
+                "output_format": (["png", "jpeg", "webp"], {"default": "webp", "tooltip": "Format of the output image"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
+                "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your HyprLab API key"}),
+                "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "How the response data should be formatted"}),
+            },
+            "optional": {
+                "negative_prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "Input that defines what NOT to include during generation (max 10,000 characters)"}),
+                "aspect_ratio": (["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "16:10", "10:16", "3:1", "1:3"], {"default": "1:1", "tooltip": "Aspect ratio of the generated image"}),
+                "style_type": (["Auto", "General", "Realistic", "Design", "Render 3D", "Anime"], {"default": "Auto", "tooltip": "Artistic style or genre for the output"}),
+                "magic_prompt_option": (["Auto", "On", "Off"], {"default": "Auto", "tooltip": "Toggle for automatic magic prompt system"}),
+            }
+        }
+
+    def generate_ideogram_image(
+        self,
+        prompt,
+        model,
+        output_format,
+        seed,
+        api_url,
+        api_key,
+        response_format,
+        negative_prompt="",
+        aspect_ratio="1:1",
+        style_type="Auto",
+        magic_prompt_option="Auto"
+    ):
+        if len(prompt) > 10000:
+            raise ValueError("Prompt must not exceed 10,000 characters")
+        if not prompt.strip():
+            raise ValueError("Prompt must be a non-empty string")
+        
+        if negative_prompt and len(negative_prompt) > 10000:
+            raise ValueError("Negative prompt must not exceed 10,000 characters")
+
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "response_format": response_format,
+            "output_format": output_format
+        }
+
+        # Add optional parameters
+        if negative_prompt.strip():
+            payload["negative_prompt"] = negative_prompt
+        if aspect_ratio:
+            payload["aspect_ratio"] = aspect_ratio
+        if style_type:
+            payload["style_type"] = style_type
+        if magic_prompt_option:
+            payload["magic_prompt_option"] = magic_prompt_option
+        
+        return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
+
+
+class Leon_Recraft_Image_API_Node(HyprLabImageGenerationNodeBase):
+    CATEGORY = "Leon_API"
+    RETURN_TYPES = ("IMAGE", "STRING", "INT")
+    RETURN_NAMES = ("image", "image_url", "seed")
+    FUNCTION = "generate_recraft_image"
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": "cat", "tooltip": "Main text that influences the image generation (max 10,000 characters)"}),
+                "model": (["recraft-v3"], {"default": "recraft-v3", "tooltip": "Recraft AI model to use for generation"}),
+                "output_format": (["png", "jpeg", "webp"], {"default": "webp", "tooltip": "Format of the output image"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
+                "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your HyprLab API key"}),
+                "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "How the response data should be formatted"}),
+            },
+            "optional": {
+                "size": ([
+                    "1024x1024", "1365x1024", "1024x1365", "1536x1024", "1024x1536",
+                    "1820x1024", "1024x1820", "1024x2048", "2048x1024", "1434x1024",
+                    "1024x1434", "1024x1280", "1280x1024", "1024x1707", "1707x1024"
+                ], {"default": "1024x1024", "tooltip": "Dimensions of the generated image"}),
+                "style": ([
+                    "digital_illustration", "digital_illustration/pixel_art", "digital_illustration/hand_drawn",
+                    "digital_illustration/grain", "digital_illustration/infantile_sketch", "digital_illustration/2d_art_poster",
+                    "digital_illustration/handmade_3d", "digital_illustration/hand_drawn_outline", "digital_illustration/engraving_color",
+                    "digital_illustration/2d_art_poster_2", "realistic_image", "realistic_image/b_and_w",
+                    "realistic_image/hard_flash", "realistic_image/hdr", "realistic_image/natural_light",
+                    "realistic_image/studio_portrait", "realistic_image/enterprise", "realistic_image/motion_blur",
+                    "vector_illustration", "vector_illustration/engraving", "vector_illustration/line_art",
+                    "vector_illustration/line_circuit", "vector_illustration/linocut"
+                ], {"default": "realistic_image", "tooltip": "Artistic style or filter applied to the generated image"}),
+            }
+        }
+
+    def generate_recraft_image(
+        self,
+        prompt,
+        model,
+        output_format,
+        seed,
+        api_url,
+        api_key,
+        response_format,
+        size="1024x1024",
+        style="realistic_image"
+    ):
+        if len(prompt) > 10000:
+            raise ValueError("Prompt must not exceed 10,000 characters")
+        if not prompt.strip():
+            raise ValueError("Prompt must be a non-empty string")
+
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "response_format": response_format,
+            "output_format": output_format
+        }
+
+        # Add optional parameters
+        if size:
+            payload["size"] = size
+        if style:
+            payload["style"] = style
+        
+        return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
+
+
 API_NODE_CLASS_MAPPINGS = {
     "Leon_Google_Image_API_Node": Leon_Google_Image_API_Node,
     "Leon_Luma_AI_Image_API_Node": Leon_Luma_AI_Image_API_Node,
     # "Leon_Midjourney_Proxy_API_Node": Leon_Midjourney_Proxy_API_Node, # Removed
     "Leon_Flux_Image_API_Node": Leon_Flux_Image_API_Node,
     "Leon_Flux_Kontext_API_Node": Leon_Flux_Kontext_API_Node,
+    "Leon_ByteDance_Image_API_Node": Leon_ByteDance_Image_API_Node,
+    "Leon_Ideogram_Image_API_Node": Leon_Ideogram_Image_API_Node,
+    "Leon_Recraft_Image_API_Node": Leon_Recraft_Image_API_Node,
 }
 
 API_NODE_DISPLAY_NAME_MAPPINGS = {
@@ -406,4 +618,7 @@ API_NODE_DISPLAY_NAME_MAPPINGS = {
     # "Leon_Midjourney_Proxy_API_Node": "🤖 Leon Midjourney Proxy API", # Removed
     "Leon_Flux_Image_API_Node": "🤖 Leon FLUX Image API",
     "Leon_Flux_Kontext_API_Node": "🤖 Leon FLUX Kontext API",
+    "Leon_ByteDance_Image_API_Node": "🤖 Leon ByteDance Image API",
+    "Leon_Ideogram_Image_API_Node": "🤖 Leon Ideogram Image API",
+    "Leon_Recraft_Image_API_Node": "🤖 Leon Recraft Image API",
 } 
