@@ -124,8 +124,7 @@ class Leon_DALLE_Image_API_Node(OpenAIImageGenerationNodeBase):
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "A cute baby sea otter", "tooltip": "Text description of the image to generate"}),
-                "model": (["dall-e-3", "dall-e-2"], {"default": "dall-e-3", "tooltip": "DALL-E model to use for generation"}),
-                "n": ("INT", {"default": 1, "min": 1, "max": 1, "tooltip": "Number of images to generate (always 1 for DALL-E 3)"}),
+                "model": (["dall-e-3", "dall-e-2", "azure/dall-e-3"], {"default": "dall-e-3", "tooltip": "DALL-E model to use for generation"}),
                 "quality": (["standard", "hd"], {"default": "standard", "tooltip": "Image quality (DALL-E 3 only)"}),
                 "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "Format of the response"}),
                 "size": (["1024x1024", "1024x1792", "1792x1024", "512x512", "256x256"], {"default": "1024x1024", "tooltip": "Size of the generated image"}),
@@ -134,7 +133,7 @@ class Leon_DALLE_Image_API_Node(OpenAIImageGenerationNodeBase):
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_HYPRLAB_API_KEY", "tooltip": "Your HyprLab API key"}),
             },
             "optional": {
-                "style": (["vivid", "natural"], {"default": "vivid", "tooltip": "Style of the generated image (DALL-E 3 only)"}),
+                "style": (["None", "vivid", "natural"], {"default": "None", "tooltip": "Style of the generated image (DALL-E 3 only, None to omit)"}),
             }
         }
 
@@ -142,20 +141,19 @@ class Leon_DALLE_Image_API_Node(OpenAIImageGenerationNodeBase):
         self,
         prompt,
         model,
-        n,
         quality,
         response_format,
         size,
         seed,
         api_url,
         api_key,
-        style="vivid"
+        style="None"
     ):
         if not prompt.strip():
             raise ValueError("Prompt must be a non-empty string")
 
         # Validate size based on model
-        if model == "dall-e-3":
+        if model in ["dall-e-3", "azure/dall-e-3"]:
             valid_sizes = ["1024x1024", "1024x1792", "1792x1024"]
             if size not in valid_sizes:
                 raise ValueError(f"For DALL-E 3, size must be one of: {valid_sizes}")
@@ -167,15 +165,16 @@ class Leon_DALLE_Image_API_Node(OpenAIImageGenerationNodeBase):
         payload = {
             "model": model,
             "prompt": prompt,
-            "n": n,
+            "n": 1,
             "response_format": response_format,
             "size": size
         }
 
         # Add DALL-E 3 specific parameters
-        if model == "dall-e-3":
+        if model in ["dall-e-3", "azure/dall-e-3"]:
             payload["quality"] = quality
-            payload["style"] = style
+            if style != "None":
+                payload["style"] = style
 
         return self._make_api_call(payload, api_url, api_key, response_format, "png", seed)
 
