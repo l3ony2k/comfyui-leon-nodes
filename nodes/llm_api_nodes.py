@@ -89,7 +89,7 @@ class Leon_LLM_Chat_API_Node(HyprLabLLMNodeBase):
             },
             "optional": {
                 "system_message": ("STRING", {"multiline": True, "default": "", "tooltip": "System message to set the assistant's behavior"}),
-                "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 8192, "tooltip": "Maximum number of tokens to generate"}),
+                "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 1048576, "tooltip": "Maximum number of tokens to generate"}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1, "tooltip": "Sampling temperature (0.0 to 2.0)"}),
                 "top_p": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.1, "tooltip": "Nucleus sampling parameter"}),
                 "input_image": ("IMAGE", {"tooltip": "Optional image input for vision-capable models"}),
@@ -161,7 +161,7 @@ class Leon_LLM_JSON_API_Node(HyprLabLLMNodeBase):
             },
             "optional": {
                 "system_message": ("STRING", {"multiline": True, "default": "You are a helpful assistant that extracts structured data.", "tooltip": "System message to set the assistant's behavior"}),
-                "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 8192, "tooltip": "Maximum number of tokens to generate"}),
+                "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 1048576, "tooltip": "Maximum number of tokens to generate"}),
                 "temperature": ("FLOAT", {"default": 0.1, "min": 0.0, "max": 2.0, "step": 0.1, "tooltip": "Sampling temperature (lower for more consistent JSON)"}),
             }
         }

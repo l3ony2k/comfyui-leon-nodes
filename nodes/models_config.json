@@ -2172,22 +2172,9 @@
       "context_length": 128000
     },
     {
-      "id": "deepseek-chat-v3-0324",
-      "object": "model",
-      "created": 1742774400,
-      "owned_by": "deepseek",
-      "pricing": {
-        "discount": 0.8,
-        "prompt": "$0.028 / 1M Tokens",
-        "completion": "$0.056 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 128000
-    },
-    {
       "id": "deepseek-chat",
       "object": "model",
-      "created": 1719532800,
+      "created": 1742774400,
       "owned_by": "deepseek",
       "pricing": {
         "discount": 0.8,
@@ -2534,201 +2521,9 @@
       "context_length": 1048576
     },
     {
-      "id": "gemini-2.5-flash",
-      "object": "model",
-      "created": 1747699200,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.12 / 1M Tokens",
-        "completion": "$1 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-preview",
-      "object": "model",
-      "created": 1747699200,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.06 / 1M Tokens",
-        "completion": "$0.24 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-preview-05-20",
-      "object": "model",
-      "created": 1747699200,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.06 / 1M Tokens",
-        "completion": "$0.24 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-preview-04-17",
-      "object": "model",
-      "created": 1744848000,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.06 / 1M Tokens",
-        "completion": "$0.24 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-thinking",
-      "object": "model",
-      "created": 1747699200,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.12 / 1M Tokens",
-        "completion": "$1 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-preview-thinking",
-      "object": "model",
-      "created": 1747699200,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.06 / 1M Tokens",
-        "completion": "$1.4 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-preview-05-20-thinking",
-      "object": "model",
-      "created": 1747699200,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.06 / 1M Tokens",
-        "completion": "$0.24 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-preview-04-17-thinking",
-      "object": "model",
-      "created": 1744848000,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.06 / 1M Tokens",
-        "completion": "$1.4 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
       "id": "gemini-2.5-pro",
       "object": "model",
       "created": 1749081600,
-      "owned_by": "google",
-      "pricing": [
-        {
-          "threshold": "upto_200k",
-          "discount": 0.6,
-          "prompt": "$0.5 / 1M Tokens",
-          "completion": "$4 / 1M Tokens"
-        },
-        {
-          "threshold": "longer_200k",
-          "discount": 0.6,
-          "prompt": "$1 / 1M Tokens",
-          "completion": "$6 / 1M Tokens"
-        }
-      ],
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro-preview",
-      "object": "model",
-      "created": 1749081600,
-      "owned_by": "google",
-      "pricing": [
-        {
-          "threshold": "upto_200k",
-          "discount": 0.6,
-          "prompt": "$0.5 / 1M Tokens",
-          "completion": "$4 / 1M Tokens"
-        },
-        {
-          "threshold": "longer_200k",
-          "discount": 0.6,
-          "prompt": "$1 / 1M Tokens",
-          "completion": "$6 / 1M Tokens"
-        }
-      ],
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro-preview-06-05",
-      "object": "model",
-      "created": 1749081600,
-      "owned_by": "google",
-      "pricing": [
-        {
-          "threshold": "upto_200k",
-          "discount": 0.6,
-          "prompt": "$0.5 / 1M Tokens",
-          "completion": "$4 / 1M Tokens"
-        },
-        {
-          "threshold": "longer_200k",
-          "discount": 0.6,
-          "prompt": "$1 / 1M Tokens",
-          "completion": "$6 / 1M Tokens"
-        }
-      ],
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro-preview-05-06",
-      "object": "model",
-      "created": 1746489600,
-      "owned_by": "google",
-      "pricing": [
-        {
-          "threshold": "upto_200k",
-          "discount": 0.6,
-          "prompt": "$0.5 / 1M Tokens",
-          "completion": "$4 / 1M Tokens"
-        },
-        {
-          "threshold": "longer_200k",
-          "discount": 0.6,
-          "prompt": "$1 / 1M Tokens",
-          "completion": "$6 / 1M Tokens"
-        }
-      ],
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro-preview-03-25",
-      "object": "model",
-      "created": 1742860800,
       "owned_by": "google",
       "pricing": [
         {
@@ -2770,95 +2565,33 @@
       "context_length": 1048576
     },
     {
-      "id": "gemini-2.5-pro-preview-thinking",
+      "id": "gemini-2.5-flash",
       "object": "model",
-      "created": 1746489600,
+      "created": 1747699200,
       "owned_by": "google",
-      "pricing": [
-        {
-          "threshold": "upto_200k",
-          "discount": 0.6,
-          "prompt": "$0.5 / 1M Tokens",
-          "completion": "$4 / 1M Tokens"
-        },
-        {
-          "threshold": "longer_200k",
-          "discount": 0.6,
-          "prompt": "$1 / 1M Tokens",
-          "completion": "$6 / 1M Tokens"
-        }
-      ],
+      "pricing": {
+        "discount": 0.6,
+        "prompt": "$0.12 / 1M Tokens",
+        "completion": "$1 / 1M Tokens"
+      },
       "is_moderated": false,
       "context_length": 1048576
     },
     {
-      "id": "gemini-2.5-pro-preview-06-05-thinking",
+      "id": "gemini-2.5-flash-thinking",
       "object": "model",
-      "created": 1749081600,
+      "created": 1747699200,
       "owned_by": "google",
-      "pricing": [
-        {
-          "threshold": "upto_200k",
-          "discount": 0.6,
-          "prompt": "$0.5 / 1M Tokens",
-          "completion": "$4 / 1M Tokens"
-        },
-        {
-          "threshold": "longer_200k",
-          "discount": 0.6,
-          "prompt": "$1 / 1M Tokens",
-          "completion": "$6 / 1M Tokens"
-        }
-      ],
+      "pricing": {
+        "discount": 0.6,
+        "prompt": "$0.12 / 1M Tokens",
+        "completion": "$1 / 1M Tokens"
+      },
       "is_moderated": false,
       "context_length": 1048576
     },
     {
-      "id": "gemini-2.5-pro-preview-05-06-thinking",
-      "object": "model",
-      "created": 1746489600,
-      "owned_by": "google",
-      "pricing": [
-        {
-          "threshold": "upto_200k",
-          "discount": 0.6,
-          "prompt": "$0.5 / 1M Tokens",
-          "completion": "$4 / 1M Tokens"
-        },
-        {
-          "threshold": "longer_200k",
-          "discount": 0.6,
-          "prompt": "$1 / 1M Tokens",
-          "completion": "$6 / 1M Tokens"
-        }
-      ],
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro-preview-03-25-thinking",
-      "object": "model",
-      "created": 1742860800,
-      "owned_by": "google",
-      "pricing": [
-        {
-          "threshold": "upto_200k",
-          "discount": 0.6,
-          "prompt": "$0.5 / 1M Tokens",
-          "completion": "$4 / 1M Tokens"
-        },
-        {
-          "threshold": "longer_200k",
-          "discount": 0.6,
-          "prompt": "$1 / 1M Tokens",
-          "completion": "$6 / 1M Tokens"
-        }
-      ],
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview",
+      "id": "gemini-2.5-flash-lite",
       "object": "model",
       "created": 1750118400,
       "owned_by": "google",
@@ -2871,33 +2604,7 @@
       "context_length": 1048576
     },
     {
-      "id": "gemini-2.5-flash-lite-preview-06-17",
-      "object": "model",
-      "created": 1750118400,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.04 / 1M Tokens",
-        "completion": "$0.16 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-thinking",
-      "object": "model",
-      "created": 1750118400,
-      "owned_by": "google",
-      "pricing": {
-        "discount": 0.6,
-        "prompt": "$0.04 / 1M Tokens",
-        "completion": "$0.16 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-06-17-thinking",
+      "id": "gemini-2.5-flash-lite-thinking",
       "object": "model",
       "created": 1750118400,
       "owned_by": "google",
@@ -3260,6 +2967,32 @@
         "discount": 0.8,
         "prompt": "$0.1 / 1M Tokens",
         "completion": "$0.1 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 128000
+    },
+    {
+      "id": "qwen-3-coder",
+      "object": "model",
+      "created": 1753142400,
+      "owned_by": "qwenlm",
+      "pricing": {
+        "discount": 0.5,
+        "prompt": "$0.5 / 1M Tokens",
+        "completion": "$2.5 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 1048576
+    },
+    {
+      "id": "qwen-3-235b-a22b-2507",
+      "object": "model",
+      "created": 1753056000,
+      "owned_by": "qwenlm",
+      "pricing": {
+        "discount": 0.5,
+        "prompt": "$0.35 / 1M Tokens",
+        "completion": "$1.4 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 128000
