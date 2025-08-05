@@ -1120,32 +1120,6 @@
       "context_length": null
     },
     {
-      "id": "claude-3-haiku-20240307",
-      "object": "model",
-      "created": 1709769600,
-      "owned_by": "anthropic",
-      "pricing": {
-        "discount": 0.1,
-        "prompt": "$0.225 / 1M Tokens",
-        "completion": "$1.125 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 200000
-    },
-    {
-      "id": "claude-3-sonnet-20240229",
-      "object": "model",
-      "created": 1709164800,
-      "owned_by": "anthropic",
-      "pricing": {
-        "discount": 0.1,
-        "prompt": "$2.7 / 1M Tokens",
-        "completion": "$13.5 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 200000
-    },
-    {
       "id": "claude-3-opus-20240229",
       "object": "model",
       "created": 1709164800,

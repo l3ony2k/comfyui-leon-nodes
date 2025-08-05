@@ -261,7 +261,8 @@ class Leon_Flux_Image_API_Node(HyprLabImageGenerationNodeBase):
         "FLUX 1.1 Pro": "flux-1.1-pro",
         "FLUX Pro Canny": "flux-pro-canny",
         "FLUX Dev": "flux-dev",
-        "FLUX Schnell": "flux-schnell"
+        "FLUX Schnell": "flux-schnell",
+        "FLUX Krea Dev": "flux-krea-dev"
     }
     ASPECT_RATIOS_ULTRA = ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16", "9:21"]
 
@@ -283,17 +284,20 @@ class Leon_Flux_Image_API_Node(HyprLabImageGenerationNodeBase):
             "optional": {
                 "input_image_prompt_socket": ("IMAGE", { "tooltip": "Image for image guidance. Must be at least 256x256 pixels (FLUX 1.1 Pro Ultra, FLUX 1.1 Pro, FLUX Pro Canny)."}),
                 "image_prompt_strength": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Strength of image_prompt (FLUX 1.1 Pro Ultra only)"}),
-                "aspect_ratio": (cls.ASPECT_RATIOS_ULTRA, {"default": "1:1", "tooltip": "Aspect ratio (FLUX 1.1 Pro Ultra only)"}),
+                "aspect_ratio": (cls.ASPECT_RATIOS_ULTRA, {"default": "1:1", "tooltip": "Aspect ratio (FLUX 1.1 Pro Ultra, FLUX Krea Dev)"}),
                 "raw": ("BOOLEAN", {"default": False, "tooltip": "Return raw output (FLUX 1.1 Pro Ultra only)"}),
                 "steps": ("INT", {"default": 30, "min": 1, "max": 50, "tooltip": "Number of steps (FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell)"}),
                 "height": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "tooltip": "Image height, multiple of 32 (FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell)"}),
                 "width": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "tooltip": "Image width, multiple of 32 (FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell)"}),
+                "prompt_strength": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Prompt strength for image-to-image (FLUX Krea Dev only)"}),
+                "num_inference_steps": ("INT", {"default": 20, "min": 4, "max": 50, "tooltip": "Number of inference steps (FLUX Krea Dev only)"}),
+                "guidance": ("FLOAT", {"default": 3.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "Guidance scale (FLUX Krea Dev only)"}),
             }
         }
 
     def generate_flux_image(self, model_choice, prompt, response_format, output_format, seed, api_url, api_key,
                               input_image_prompt_socket=None, image_prompt_strength=0.5, aspect_ratio="1:1", raw=False,
-                              steps=30, height=1024, width=1024):
+                              steps=30, height=1024, width=1024, prompt_strength=0.8, num_inference_steps=20, guidance=3.5):
 
         actual_model_name = self.MODEL_MAPPING.get(model_choice)
         if not actual_model_name:
@@ -327,6 +331,14 @@ class Leon_Flux_Image_API_Node(HyprLabImageGenerationNodeBase):
             payload["steps"] = steps
             payload["height"] = height
             payload["width"] = width
+        elif model_choice == "FLUX Krea Dev":
+            if actual_image_prompt_payload:
+                payload["image"] = actual_image_prompt_payload
+                payload["prompt_strength"] = prompt_strength
+            if aspect_ratio != self.INPUT_TYPES()["optional"]["aspect_ratio"][1]["default"]:
+                payload["aspect_ratio"] = aspect_ratio
+            payload["num_inference_steps"] = num_inference_steps
+            payload["guidance"] = guidance
 
         if model_choice in ["FLUX 1.1 Pro", "FLUX Pro Canny", "FLUX Dev", "FLUX Schnell"]:
             if height % 32 != 0: raise ValueError(f"Height must be a multiple of 32. Got {height}.")
@@ -340,7 +352,7 @@ class Leon_Flux_Kontext_API_Node(HyprLabImageGenerationNodeBase):
     RETURN_NAMES = ("image", "image_url", "seed")
     FUNCTION = "generate_flux_kontext_image"
 
-    MODEL_CHOICES = ["flux-kontext-max", "flux-kontext-pro"]
+    MODEL_CHOICES = ["flux-kontext-max", "flux-kontext-pro", "flux-kontext-dev"]
     ASPECT_RATIO_CHOICES = [
         "match_input_image", "1:1", "16:9", "9:16", "4:3", "3:4", 
         "3:2", "2:3", "4:5", "5:4", "21:9", "9:21", "2:1", "1:2"
@@ -362,16 +374,23 @@ class Leon_Flux_Kontext_API_Node(HyprLabImageGenerationNodeBase):
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_HYPRLAB_API_KEY"}),
             },
             "optional": {
-                "input_image": ("IMAGE",),
+                "input_image": ("IMAGE", {"tooltip": "Input image (required for flux-kontext-dev)"}),
                 "aspect_ratio": (cls.ASPECT_RATIO_CHOICES, {"default": "1:1"}),
+                "num_inference_steps": ("INT", {"default": 20, "min": 4, "max": 50, "tooltip": "Number of inference steps (flux-kontext-dev only)"}),
+                "guidance": ("FLOAT", {"default": 3.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "Guidance scale (flux-kontext-dev only)"}),
             }
         }
 
     def generate_flux_kontext_image(self, model, prompt, response_format, output_format, seed, 
-                                      api_url, api_key, input_image=None, aspect_ratio="1:1"):
+                                      api_url, api_key, input_image=None, aspect_ratio="1:1", 
+                                      num_inference_steps=20, guidance=3.5):
 
         if not prompt.strip():
             raise ValueError("Prompt must be a non-empty string.")
+
+        # Validate model-specific requirements
+        if model == "flux-kontext-dev" and input_image is None:
+            raise ValueError("flux-kontext-dev model requires an input image")
 
         payload = {
             "model": model,
@@ -390,6 +409,11 @@ class Leon_Flux_Kontext_API_Node(HyprLabImageGenerationNodeBase):
             if input_image is None and aspect_ratio == "match_input_image":
                  pass
 
+        # Add flux-kontext-dev specific parameters
+        if model == "flux-kontext-dev":
+            payload["num_inference_steps"] = num_inference_steps
+            payload["guidance"] = guidance
+
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
 
@@ -407,7 +431,7 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "a cute cat", "tooltip": "Main text input to guide the generation process (max 10,000 characters)"}),
-                "model": (["seedream-3"], {"default": "seedream-3", "tooltip": "ByteDance AI model to use for generation"}),
+                "model": (["seedream-3", "seededit-3"], {"default": "seedream-3", "tooltip": "ByteDance AI model to use for generation"}),
                 "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
@@ -415,9 +439,10 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
                 "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "How the response data should be formatted"}),
             },
             "optional": {
-                "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "21:9"], {"default": "16:9", "tooltip": "Aspect ratio of the generated image"}),
-                "size": (["small", "regular", "big"], {"default": "regular", "tooltip": "Image dimensions"}),
-                "guidance_scale": ("FLOAT", {"default": 2.5, "min": 1.0, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence. Higher = more literal (1-10)"}),
+                "reference_image": ("IMAGE", {"tooltip": "Reference image (required for seededit-3 model)"}),
+                "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "21:9"], {"default": "16:9", "tooltip": "Aspect ratio of the generated image (seedream-3 only)"}),
+                "size": (["small", "regular", "big"], {"default": "regular", "tooltip": "Image dimensions (seedream-3 only)"}),
+                "guidance_scale": ("FLOAT", {"default": 2.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence/guidance scale (0-10)"}),
             }
         }
 
@@ -430,6 +455,7 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
         api_url,
         api_key,
         response_format,
+        reference_image=None,
         aspect_ratio="16:9",
         size="regular",
         guidance_scale=2.5
@@ -439,6 +465,10 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
         if not prompt.strip():
             raise ValueError("Prompt must be a non-empty string")
 
+        # Validate model-specific requirements
+        if model == "seededit-3" and reference_image is None:
+            raise ValueError("seededit-3 model requires a reference image")
+
         payload = {
             "model": model,
             "prompt": prompt,
@@ -446,13 +476,26 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
             "output_format": output_format
         }
 
-        # Add optional parameters
-        if aspect_ratio:
-            payload["aspect_ratio"] = aspect_ratio
-        if size:
-            payload["size"] = size
-        if guidance_scale:
-            payload["guidance_scale"] = guidance_scale
+        # Add model-specific parameters
+        if model == "seededit-3":
+            # seededit-3 requires image input
+            if reference_image is not None:
+                image_data_uri = self._tensor_to_base64_data_uri(reference_image)
+                if image_data_uri:
+                    payload["image"] = image_data_uri
+            # seededit-3 uses guidance_scale (0-10)
+            if guidance_scale is not None:
+                payload["guidance_scale"] = guidance_scale
+        elif model == "seedream-3":
+            # seedream-3 uses aspect_ratio, size, and guidance_scale (1-10)
+            if aspect_ratio:
+                payload["aspect_ratio"] = aspect_ratio
+            if size:
+                payload["size"] = size
+            if guidance_scale is not None:
+                # Ensure guidance_scale is at least 1 for seedream-3
+                guidance_scale = max(1.0, guidance_scale)
+                payload["guidance_scale"] = guidance_scale
         
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
