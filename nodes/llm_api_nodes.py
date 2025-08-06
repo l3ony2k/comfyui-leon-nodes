@@ -92,13 +92,14 @@ class Leon_LLM_Chat_API_Node(HyprLabLLMNodeBase):
                 "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 1048576, "tooltip": "Maximum number of tokens to generate"}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1, "tooltip": "Sampling temperature (0.0 to 2.0)"}),
                 "top_p": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.1, "tooltip": "Nucleus sampling parameter"}),
-                "input_image": ("IMAGE", {"tooltip": "Optional image input for vision-capable models"}),
+                "input_image": ("IMAGE", {"tooltip": "Optional image input for vision-capable models (socket input)"}),
+                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional image URL for vision-capable models (URL input)"}),
             }
         }
 
 
 
-    def chat_completion(self, model, user_message, api_url, api_key, system_message="", max_tokens=1000, temperature=0.7, top_p=1.0, input_image=None):
+    def chat_completion(self, model, user_message, api_url, api_key, system_message="", max_tokens=1000, temperature=0.7, top_p=1.0, input_image=None, image_url=""):
         if not user_message.strip():
             raise ValueError("User message cannot be empty")
 
@@ -112,9 +113,21 @@ class Leon_LLM_Chat_API_Node(HyprLabLLMNodeBase):
             })
 
         # Prepare user message content
-        if input_image is not None:
+        has_image_socket = input_image is not None
+        has_image_url = image_url.strip() != ""
+        
+        if has_image_socket and has_image_url:
+            raise ValueError("Please provide either image socket input OR image URL, not both")
+        
+        if has_image_socket or has_image_url:
             # Vision model with image input
-            image_data_uri = self._tensor_to_base64_data_uri(input_image)
+            if has_image_socket:
+                # Use socket input (convert tensor to base64)
+                image_data_uri = self._tensor_to_base64_data_uri(input_image)
+            else:
+                # Use URL input directly
+                image_data_uri = image_url
+                
             user_content = [
                 {"type": "text", "text": user_message},
                 {"type": "image_url", "image_url": {"url": image_data_uri}}
@@ -163,12 +176,14 @@ class Leon_LLM_JSON_API_Node(HyprLabLLMNodeBase):
                 "system_message": ("STRING", {"multiline": True, "default": "You are a helpful assistant that extracts structured data.", "tooltip": "System message to set the assistant's behavior"}),
                 "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 1048576, "tooltip": "Maximum number of tokens to generate"}),
                 "temperature": ("FLOAT", {"default": 0.1, "min": 0.0, "max": 2.0, "step": 0.1, "tooltip": "Sampling temperature (lower for more consistent JSON)"}),
+                "input_image": ("IMAGE", {"tooltip": "Optional image input for vision-capable models (socket input)"}),
+                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional image URL for vision-capable models (URL input)"}),
             }
         }
 
 
 
-    def json_completion(self, model, user_message, json_schema, api_url, api_key, system_message="You are a helpful assistant that extracts structured data.", max_tokens=1000, temperature=0.1):
+    def json_completion(self, model, user_message, json_schema, api_url, api_key, system_message="You are a helpful assistant that extracts structured data.", max_tokens=1000, temperature=0.1, input_image=None, image_url=""):
         if not user_message.strip():
             raise ValueError("User message cannot be empty")
 
@@ -187,9 +202,33 @@ class Leon_LLM_JSON_API_Node(HyprLabLLMNodeBase):
                 "content": system_message
             })
 
+        # Prepare user message content
+        has_image_socket = input_image is not None
+        has_image_url = image_url.strip() != ""
+        
+        if has_image_socket and has_image_url:
+            raise ValueError("Please provide either image socket input OR image URL, not both")
+        
+        if has_image_socket or has_image_url:
+            # Vision model with image input
+            if has_image_socket:
+                # Use socket input (convert tensor to base64)
+                image_data_uri = self._tensor_to_base64_data_uri(input_image)
+            else:
+                # Use URL input directly
+                image_data_uri = image_url
+                
+            user_content = [
+                {"type": "text", "text": user_message},
+                {"type": "image_url", "image_url": {"url": image_data_uri}}
+            ]
+        else:
+            # Text-only input
+            user_content = user_message
+
         messages.append({
             "role": "user",
-            "content": user_message
+            "content": user_content
         })
 
         payload = {
@@ -302,15 +341,91 @@ class Leon_Model_Selector_Node:
         return (selected_model,)
 
 
+class Leon_GPT_OSS_API_Node(HyprLabLLMNodeBase):
+    CATEGORY = "Leon_API"
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("response",)
+    FUNCTION = "gpt_oss_completion"
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "model": (["gpt-oss-120b", "gpt-oss-20b"], {"default": "gpt-oss-120b", "tooltip": "GPT-OSS model to use (120B or 20B parameters)"}),
+                "user_message": ("STRING", {"multiline": True, "default": "Hello! How can you help me today?", "tooltip": "User message to send to the model"}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/chat/completions", "tooltip": "API URL for chat completions"}),
+                "api_key": ("STRING", {"multiline": False, "default": "YOUR_HYPRLAB_API_KEY", "tooltip": "Your HyprLab API key"}),
+            },
+            "optional": {
+                "system_message": ("STRING", {"multiline": True, "default": "", "tooltip": "System message to set the assistant's behavior"}),
+                "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 128000, "tooltip": "Maximum number of tokens to generate"}),
+                "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1, "tooltip": "Sampling temperature (0.0 to 2.0)"}),
+                "top_p": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.1, "tooltip": "Nucleus sampling parameter"}),
+                "response_format": (["text", "json_object", "json_schema"], {"default": "text", "tooltip": "Response format (text, JSON object, or structured JSON schema)"}),
+                "json_schema": ("STRING", {"multiline": True, "default": "", "tooltip": "JSON schema for structured output (when using json_schema response format)"}),
+            }
+        }
+
+    def gpt_oss_completion(self, model, user_message, api_url, api_key, system_message="", max_tokens=1000, temperature=0.7, top_p=1.0, response_format="text", json_schema=""):
+        if not user_message.strip():
+            raise ValueError("User message cannot be empty")
+
+        messages = []
+        
+        # Add system message if provided
+        if system_message.strip():
+            messages.append({
+                "role": "system",
+                "content": system_message
+            })
+
+        messages.append({
+            "role": "user",
+            "content": user_message
+        })
+
+        payload = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p
+        }
+
+        # Handle response format
+        if response_format == "json_object":
+            payload["response_format"] = {"type": "json_object"}
+        elif response_format == "json_schema" and json_schema.strip():
+            try:
+                schema_obj = json.loads(json_schema)
+                payload["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "gpt_oss_schema",
+                        "schema": schema_obj
+                    }
+                }
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON schema: {str(e)}")
+
+        response_text = self._make_llm_api_call(payload, api_url, api_key)
+        return (response_text,)
+
+
 # Node mappings for ComfyUI
 LLM_NODE_CLASS_MAPPINGS = {
     "Leon_LLM_Chat_API_Node": Leon_LLM_Chat_API_Node,
     "Leon_LLM_JSON_API_Node": Leon_LLM_JSON_API_Node,
     "Leon_Model_Selector_Node": Leon_Model_Selector_Node,
+    "Leon_GPT_OSS_API_Node": Leon_GPT_OSS_API_Node,
 }
 
 LLM_NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_LLM_Chat_API_Node": "🤖 Leon LLM Chat API",
     "Leon_LLM_JSON_API_Node": "🤖 Leon LLM JSON API",
     "Leon_Model_Selector_Node": "🤖 Leon Model Selector",
+    "Leon_GPT_OSS_API_Node": "🤖 Leon GPT-OSS API",
 }
