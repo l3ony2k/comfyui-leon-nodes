@@ -689,6 +689,68 @@ class Leon_Qwen_Image_API_Node(HyprLabImageGenerationNodeBase):
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
 
+class Leon_Qwen_Image_Edit_API_Node(HyprLabImageGenerationNodeBase):
+    CATEGORY = "Leon_API"
+    RETURN_TYPES = ("IMAGE", "STRING", "INT")
+    RETURN_NAMES = ("image", "image_url", "seed")
+    FUNCTION = "generate_qwen_image_edit"
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": "Edit the image to look like a watercolor painting", "tooltip": "Text instruction for editing"}),
+                "model": (["qwen-image-edit"], {"default": "qwen-image-edit", "tooltip": "Qwen image edit model"}),
+                "input_image": ("IMAGE", {"tooltip": "Image to edit (URL/Data URI is generated from this input)"}),
+                "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "Format of the response data"}),
+                "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Output image format"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
+                "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your HyprLab API key"}),
+            },
+            "optional": {
+                "aspect_ratio": (["1:1", "16:9", "9:16", "4:3", "3:4"], {"default": "1:1", "tooltip": "Aspect ratio of the generated image"}),
+            }
+        }
+
+    def generate_qwen_image_edit(
+        self,
+        prompt,
+        model,
+        input_image,
+        response_format,
+        output_format,
+        seed,
+        api_url,
+        api_key,
+        aspect_ratio="1:1",
+    ):
+        if not prompt.strip():
+            raise ValueError("Prompt must be a non-empty string")
+
+        if input_image is None:
+            raise ValueError("input_image is required for qwen-image-edit")
+
+        image_data_uri = self._tensor_to_base64_data_uri(input_image)
+        if not image_data_uri:
+            raise ValueError("Failed to convert input_image to data URI")
+
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "response_format": response_format,
+            "output_format": output_format,
+            "image": image_data_uri,
+        }
+
+        if aspect_ratio:
+            payload["aspect_ratio"] = aspect_ratio
+
+        return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
+
 API_NODE_CLASS_MAPPINGS = {
     "Leon_Google_Image_API_Node": Leon_Google_Image_API_Node,
     "Leon_Luma_AI_Image_API_Node": Leon_Luma_AI_Image_API_Node,
@@ -699,6 +761,7 @@ API_NODE_CLASS_MAPPINGS = {
     "Leon_Ideogram_Image_API_Node": Leon_Ideogram_Image_API_Node,
     "Leon_Recraft_Image_API_Node": Leon_Recraft_Image_API_Node,
     "Leon_Qwen_Image_API_Node": Leon_Qwen_Image_API_Node,
+    "Leon_Qwen_Image_Edit_API_Node": Leon_Qwen_Image_Edit_API_Node,
 }
 
 API_NODE_DISPLAY_NAME_MAPPINGS = {
@@ -711,4 +774,5 @@ API_NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_Ideogram_Image_API_Node": "🤖 Leon Ideogram Image API",
     "Leon_Recraft_Image_API_Node": "🤖 Leon Recraft Image API",
     "Leon_Qwen_Image_API_Node": "🤖 Leon Qwen Image API",
+    "Leon_Qwen_Image_Edit_API_Node": "🤖 Leon Qwen Image Edit API",
 } 

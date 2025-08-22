@@ -2,12 +2,129 @@
   "object": "list",
   "data": [
     {
+      "id": "gpt-5",
+      "object": "model",
+      "created": 1754425777,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.875 / 1M Tokens",
+        "completion": "$7 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 400000
+    },
+    {
+      "id": "gpt-5-2025-08-07",
+      "object": "model",
+      "created": 1754075360,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.875 / 1M Tokens",
+        "completion": "$7 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 400000
+    },
+    {
+      "id": "gpt-5-chat-latest",
+      "object": "model",
+      "created": 1754073306,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.875 / 1M Tokens",
+        "completion": "$7 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 400000
+    },
+    {
+      "id": "gpt-5-mini",
+      "object": "model",
+      "created": 1754425928,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.175 / 1M Tokens",
+        "completion": "$1.4 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 400000
+    },
+    {
+      "id": "gpt-5-mini-2025-08-07",
+      "object": "model",
+      "created": 1754425867,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.175 / 1M Tokens",
+        "completion": "$1.4 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 400000
+    },
+    {
+      "id": "gpt-5-nano",
+      "object": "model",
+      "created": 1754426384,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.035 / 1M Tokens",
+        "completion": "$0.28 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 400000
+    },
+    {
+      "id": "gpt-5-nano-2025-08-07",
+      "object": "model",
+      "created": 1754426303,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.035 / 1M Tokens",
+        "completion": "$0.28 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 400000
+    },
+    {
+      "id": "gpt-oss-120b",
+      "object": "model",
+      "created": 1754265600,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.105 / 1M Tokens",
+        "completion": "$0.42 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 128000
+    },
+    {
+      "id": "gpt-oss-20b",
+      "object": "model",
+      "created": 1754265600,
+      "owned_by": "openai",
+      "pricing": {
+        "discount": 0.3,
+        "prompt": "$0.035 / 1M Tokens",
+        "completion": "$0.14 / 1M Tokens"
+      },
+      "is_moderated": false,
+      "context_length": 128000
+    },
+    {
       "id": "o4-mini-high",
       "object": "model",
       "created": 1744225351,
       "owned_by": "openai",
       "pricing": {
-        "discount": 0.1,
+        "discount": 0.3,
         "prompt": "$0.99 / 1M Tokens",
         "completion": "$3.96 / 1M Tokens"
       },
@@ -262,32 +379,6 @@
       "context_length": 128000
     },
     {
-      "id": "o1-preview",
-      "object": "model",
-      "created": 1725648897,
-      "owned_by": "openai",
-      "pricing": {
-        "discount": 0.1,
-        "prompt": "$13.5 / 1M Tokens",
-        "completion": "$54 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 128000
-    },
-    {
-      "id": "o1-preview-2024-09-12",
-      "object": "model",
-      "created": 1725648865,
-      "owned_by": "openai",
-      "pricing": {
-        "discount": 0.1,
-        "prompt": "$13.5 / 1M Tokens",
-        "completion": "$54 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 128000
-    },
-    {
       "id": "gpt-4.1",
       "object": "model",
       "created": 1744316542,
@@ -425,32 +516,6 @@
         "search_context_size_low": "$0.025 / Request",
         "search_context_size_medium": "$0.0275 / Request",
         "search_context_size_high": "$0.03 / Request"
-      },
-      "is_moderated": false,
-      "context_length": 128000
-    },
-    {
-      "id": "gpt-4.5-preview",
-      "object": "model",
-      "created": 1740623059,
-      "owned_by": "openai",
-      "pricing": {
-        "discount": 0.1,
-        "prompt": "$67.5 / 1M Tokens",
-        "completion": "$135 / 1M Tokens"
-      },
-      "is_moderated": false,
-      "context_length": 128000
-    },
-    {
-      "id": "gpt-4.5-preview-2025-02-27",
-      "object": "model",
-      "created": 1740623304,
-      "owned_by": "openai",
-      "pricing": {
-        "discount": 0.1,
-        "prompt": "$67.5 / 1M Tokens",
-        "completion": "$135 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 128000
@@ -685,45 +750,6 @@
       },
       "is_moderated": false,
       "context_length": 128000
-    },
-    {
-      "id": "gpt-4-32k",
-      "object": "model",
-      "created": 1687979321,
-      "owned_by": "openai",
-      "pricing": {
-        "discount": 0.3,
-        "prompt": "$42 / 1M Tokens",
-        "completion": "$84 / 1K Tokens"
-      },
-      "is_moderated": true,
-      "context_length": 32768
-    },
-    {
-      "id": "gpt-4-32k-0613",
-      "object": "model",
-      "created": 1686614047,
-      "owned_by": "openai",
-      "pricing": {
-        "discount": 0.3,
-        "prompt": "$42 / 1M Tokens",
-        "completion": "$84 / 1K Tokens"
-      },
-      "is_moderated": true,
-      "context_length": 32768
-    },
-    {
-      "id": "gpt-4-32k-0314",
-      "object": "model",
-      "created": 1687979321,
-      "owned_by": "openai",
-      "pricing": {
-        "discount": 0.3,
-        "prompt": "$42 / 1M Tokens",
-        "completion": "$84 / 1K Tokens"
-      },
-      "is_moderated": true,
-      "context_length": 32768
     },
     {
       "id": "gpt-4",
@@ -2832,7 +2858,7 @@
       "id": "qwen-max",
       "object": "model",
       "created": 1737763200,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.5,
         "prompt": "$0.8 / 1M Tokens",
@@ -2845,7 +2871,7 @@
       "id": "qwen-plus-latest",
       "object": "model",
       "created": 1745798400,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.5,
         "prompt": "$0.2 / 1M Tokens",
@@ -2858,7 +2884,7 @@
       "id": "qwen-plus",
       "object": "model",
       "created": 1737763200,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.5,
         "prompt": "$0.2 / 1M Tokens",
@@ -2871,7 +2897,7 @@
       "id": "qwen-turbo-latest",
       "object": "model",
       "created": 1745798400,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.5,
         "prompt": "$0.025 / 1M Tokens",
@@ -2884,7 +2910,7 @@
       "id": "qwen-turbo",
       "object": "model",
       "created": 1730419200,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.5,
         "prompt": "$0.025 / 1M Tokens",
@@ -2897,7 +2923,7 @@
       "id": "qwq-plus",
       "object": "model",
       "created": 1741132800,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.5,
         "prompt": "$0.4 / 1M Tokens",
@@ -2910,7 +2936,7 @@
       "id": "qwen-3-235b-a22b",
       "object": "model",
       "created": 1745798400,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.7,
         "prompt": "$0.14 / 1M Tokens",
@@ -2923,7 +2949,7 @@
       "id": "qwen-3-30b-a3b",
       "object": "model",
       "created": 1745798400,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.7,
         "prompt": "$0.03 / 1M Tokens",
@@ -2936,7 +2962,7 @@
       "id": "qwq-32b",
       "object": "model",
       "created": 1741132800,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.8,
         "prompt": "$0.1 / 1M Tokens",
@@ -2949,7 +2975,7 @@
       "id": "qwen-3-coder",
       "object": "model",
       "created": 1753142400,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.5,
         "prompt": "$0.5 / 1M Tokens",
@@ -2962,7 +2988,7 @@
       "id": "qwen-3-235b-a22b-2507",
       "object": "model",
       "created": 1753056000,
-      "owned_by": "qwenlm",
+      "owned_by": "qwen",
       "pricing": {
         "discount": 0.5,
         "prompt": "$0.35 / 1M Tokens",
@@ -2970,6 +2996,18 @@
       },
       "is_moderated": false,
       "context_length": 128000
+    },
+    {
+      "id": "qwen-image",
+      "object": "model",
+      "created": 1754265600,
+      "owned_by": "qwen",
+      "pricing": {
+        "discount": 0.3,
+        "image": "$0.0175 / Image"
+      },
+      "is_moderated": null,
+      "context_length": null
     },
     {
       "id": "hermes-3-405b",
@@ -3003,9 +3041,9 @@
       "created": 1752019200,
       "owned_by": "x.ai",
       "pricing": {
-        "discount": 0.5,
-        "prompt": "$1.5 / 1M Tokens",
-        "completion": "$7.5 / 1M Tokens"
+        "discount": 0.1,
+        "prompt": "$2.7 / 1M Tokens",
+        "completion": "$13.5 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 256000
@@ -3016,9 +3054,9 @@
       "created": 1743724800,
       "owned_by": "x.ai",
       "pricing": {
-        "discount": 0.5,
-        "prompt": "$1.5 / 1M Tokens",
-        "completion": "$7.5 / 1M Tokens"
+        "discount": 0.1,
+        "prompt": "$2.7 / 1M Tokens",
+        "completion": "$13.5 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 131072
@@ -3029,9 +3067,9 @@
       "created": 1743724800,
       "owned_by": "x.ai",
       "pricing": {
-        "discount": 0.5,
-        "prompt": "$2.5 / 1M Tokens",
-        "completion": "$12.5 / 1M Tokens"
+        "discount": 0.1,
+        "prompt": "$4.5 / 1M Tokens",
+        "completion": "$22.5 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 131072
@@ -3042,9 +3080,9 @@
       "created": 1743724800,
       "owned_by": "x.ai",
       "pricing": {
-        "discount": 0.5,
-        "prompt": "$0.15 / 1M Tokens",
-        "completion": "$0.25 / 1M Tokens"
+        "discount": 0.1,
+        "prompt": "$0.27 / 1M Tokens",
+        "completion": "$0.45 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 131072
@@ -3055,9 +3093,9 @@
       "created": 1743724800,
       "owned_by": "x.ai",
       "pricing": {
-        "discount": 0.5,
-        "prompt": "$0.15 / 1M Tokens",
-        "completion": "$0.25 / 1M Tokens"
+        "discount": 0.1,
+        "prompt": "$0.27 / 1M Tokens",
+        "completion": "$0.45 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 131072
@@ -3068,9 +3106,9 @@
       "created": 1743724800,
       "owned_by": "x.ai",
       "pricing": {
-        "discount": 0.5,
-        "prompt": "$0.3 / 1M Tokens",
-        "completion": "$2 / 1M Tokens"
+        "discount": 0.1,
+        "prompt": "$0.54 / 1M Tokens",
+        "completion": "$3.6 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 131072
@@ -3081,9 +3119,9 @@
       "created": 1743724800,
       "owned_by": "x.ai",
       "pricing": {
-        "discount": 0.5,
-        "prompt": "$0.3 / 1M Tokens",
-        "completion": "$2 / 1M Tokens"
+        "discount": 0.1,
+        "prompt": "$0.54 / 1M Tokens",
+        "completion": "$3.6 / 1M Tokens"
       },
       "is_moderated": false,
       "context_length": 131072
@@ -3094,8 +3132,56 @@
       "created": 1736726400,
       "owned_by": "x.ai",
       "pricing": {
-        "discount": 0.5,
-        "image": "$0.035 / Image"
+        "discount": 0.1,
+        "image": "$0.063 / Image"
+      },
+      "is_moderated": null,
+      "context_length": null
+    },
+    {
+      "id": "flux-krea-dev",
+      "object": "model",
+      "created": 1753920000,
+      "owned_by": "black-forest-labs",
+      "pricing": {
+        "discount": 0.3,
+        "image": "$0.0175 / Image"
+      },
+      "is_moderated": null,
+      "context_length": null
+    },
+    {
+      "id": "flux-kontext-max",
+      "object": "model",
+      "created": 1748476800,
+      "owned_by": "black-forest-labs",
+      "pricing": {
+        "discount": 0.3,
+        "image": "$0.056 / Image"
+      },
+      "is_moderated": null,
+      "context_length": null
+    },
+    {
+      "id": "flux-kontext-pro",
+      "object": "model",
+      "created": 1748476800,
+      "owned_by": "black-forest-labs",
+      "pricing": {
+        "discount": 0.3,
+        "image": "$0.028 / Image"
+      },
+      "is_moderated": null,
+      "context_length": null
+    },
+    {
+      "id": "flux-kontext-dev",
+      "object": "model",
+      "created": 1750896000,
+      "owned_by": "black-forest-labs",
+      "pricing": {
+        "discount": 0.3,
+        "image": "$0.0175 / Image"
       },
       "is_moderated": null,
       "context_length": null
@@ -3106,8 +3192,8 @@
       "created": 1732147200,
       "owned_by": "black-forest-labs",
       "pricing": {
-        "discount": 0.5,
-        "image": "$0.025 / Image"
+        "discount": 0.3,
+        "image": "$0.035 / Image"
       },
       "is_moderated": null,
       "context_length": null
@@ -3118,8 +3204,8 @@
       "created": 1730851200,
       "owned_by": "black-forest-labs",
       "pricing": {
-        "discount": 0.5,
-        "image": "$0.03 / Image"
+        "discount": 0.3,
+        "image": "$0.042 / Image"
       },
       "is_moderated": null,
       "context_length": null
@@ -3130,8 +3216,8 @@
       "created": 1727827200,
       "owned_by": "black-forest-labs",
       "pricing": {
-        "discount": 0.5,
-        "image": "$0.02 / Image"
+        "discount": 0.3,
+        "image": "$0.028 / Image"
       },
       "is_moderated": null,
       "context_length": null
@@ -3142,8 +3228,8 @@
       "created": 1722470400,
       "owned_by": "black-forest-labs",
       "pricing": {
-        "discount": 0.5,
-        "image": "$0.0275 / Image"
+        "discount": 0.3,
+        "image": "$0.0385 / Image"
       },
       "is_moderated": null,
       "context_length": null
@@ -3522,6 +3608,18 @@
       "pricing": {
         "discount": 0.3,
         "image": "$0.007 / Image"
+      },
+      "is_moderated": null,
+      "context_length": null
+    },
+    {
+      "id": "seededit-3",
+      "object": "model",
+      "created": 1749168000,
+      "owned_by": "bytedance",
+      "pricing": {
+        "discount": 0.3,
+        "image": "$0.021 / Image"
       },
       "is_moderated": null,
       "context_length": null
