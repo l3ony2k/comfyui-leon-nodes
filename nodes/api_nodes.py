@@ -751,6 +751,81 @@ class Leon_Qwen_Image_Edit_API_Node(HyprLabImageGenerationNodeBase):
 
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
+class Leon_Nano_Banana_API_Node(HyprLabImageGenerationNodeBase):
+    CATEGORY = "Leon_API"
+    RETURN_TYPES = ("IMAGE", "STRING", "INT")
+    RETURN_NAMES = ("image", "image_url", "seed")
+    FUNCTION = "generate_nano_banana_image"
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"multiline": True, "default": "Make the cat jump.", "tooltip": "Main text prompt that influences the output generation"}),
+                "model": (["nano-banana"], {"default": "nano-banana", "tooltip": "Nano Banana model for image generation"}),
+                "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
+                "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your HyprLab API key"}),
+                "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "Format in which the response will be returned"}),
+            },
+            "optional": {
+                "image_input": ("IMAGE", {"tooltip": "Single image input to guide the generation (URL, Data URI, or base64 string)"}),
+                "image_input_2": ("IMAGE", {"tooltip": "Additional image input for multi-image scenarios"}),
+                "image_input_3": ("IMAGE", {"tooltip": "Additional image input for multi-image scenarios"}),
+                "image_input_4": ("IMAGE", {"tooltip": "Additional image input for multi-image scenarios"}),
+            }
+        }
+
+    def generate_nano_banana_image(
+        self,
+        prompt,
+        model,
+        output_format,
+        seed,
+        api_url,
+        api_key,
+        response_format,
+        image_input=None,
+        image_input_2=None,
+        image_input_3=None,
+        image_input_4=None
+    ):
+        if not prompt.strip():
+            raise ValueError("Prompt must be a non-empty string")
+
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "response_format": response_format,
+            "output_format": output_format
+        }
+
+        # Handle image inputs
+        image_inputs = []
+        
+        # Collect all non-None image inputs
+        for img_input in [image_input, image_input_2, image_input_3, image_input_4]:
+            if img_input is not None:
+                image_data_uri = self._tensor_to_base64_data_uri(img_input)
+                if image_data_uri:
+                    image_inputs.append(image_data_uri)
+
+        # Set image_input in payload based on number of images
+        if len(image_inputs) == 1:
+            # Single image input - send as string
+            payload["image_input"] = image_inputs[0]
+        elif len(image_inputs) > 1:
+            # Multiple image inputs - send as array
+            payload["image_input"] = image_inputs
+        # If no image inputs, don't add image_input to payload (text-only mode)
+
+        return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
+
+
 API_NODE_CLASS_MAPPINGS = {
     "Leon_Google_Image_API_Node": Leon_Google_Image_API_Node,
     "Leon_Luma_AI_Image_API_Node": Leon_Luma_AI_Image_API_Node,
@@ -762,6 +837,7 @@ API_NODE_CLASS_MAPPINGS = {
     "Leon_Recraft_Image_API_Node": Leon_Recraft_Image_API_Node,
     "Leon_Qwen_Image_API_Node": Leon_Qwen_Image_API_Node,
     "Leon_Qwen_Image_Edit_API_Node": Leon_Qwen_Image_Edit_API_Node,
+    "Leon_Nano_Banana_API_Node": Leon_Nano_Banana_API_Node,
 }
 
 API_NODE_DISPLAY_NAME_MAPPINGS = {
@@ -775,4 +851,5 @@ API_NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_Recraft_Image_API_Node": "🤖 Leon Recraft Image API",
     "Leon_Qwen_Image_API_Node": "🤖 Leon Qwen Image API",
     "Leon_Qwen_Image_Edit_API_Node": "🤖 Leon Qwen Image Edit API",
+    "Leon_Nano_Banana_API_Node": "🤖 Leon Nano Banana API",
 } 

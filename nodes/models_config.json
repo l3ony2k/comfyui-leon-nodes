@@ -3010,6 +3010,18 @@
       "context_length": null
     },
     {
+      "id": "qwen-image-edit",
+      "object": "model",
+      "created": 1755388800,
+      "owned_by": "qwen",
+      "pricing": {
+        "discount": 0.3,
+        "image": "$0.021 / Image"
+      },
+      "is_moderated": null,
+      "context_length": null
+    },
+    {
       "id": "hermes-3-405b",
       "object": "model",
       "created": 1723507200,
