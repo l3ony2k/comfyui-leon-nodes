@@ -431,7 +431,7 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "a cute cat", "tooltip": "Main text input to guide the generation process (max 10,000 characters)"}),
-                "model": (["seedream-3", "seededit-3"], {"default": "seedream-3", "tooltip": "ByteDance AI model to use for generation"}),
+                "model": (["seedream-4", "dreamina-3.1", "seedream-3", "seededit-3"], {"default": "seedream-4", "tooltip": "ByteDance AI model to use for generation"}),
                 "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
@@ -439,10 +439,16 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
                 "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "How the response data should be formatted"}),
             },
             "optional": {
-                "reference_image": ("IMAGE", {"tooltip": "Reference image (required for seededit-3 model)"}),
-                "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "21:9"], {"default": "16:9", "tooltip": "Aspect ratio of the generated image (seedream-3 only)"}),
-                "size": (["small", "regular", "big"], {"default": "regular", "tooltip": "Image dimensions (seedream-3 only)"}),
+                "image_input": ("IMAGE", {"tooltip": "Primary input image for guidance (seedream-4) or required reference image (seededit-3)"}),
+                "image_input_2": ("IMAGE", {"tooltip": "Additional input image for multi-image guidance (seedream-4 supports up to 4 images total)"}),
+                "image_input_3": ("IMAGE", {"tooltip": "Additional input image for multi-image guidance (seedream-4 supports up to 4 images total)"}),
+                "image_input_4": ("IMAGE", {"tooltip": "Additional input image for multi-image guidance (seedream-4 supports up to 4 images total)"}),
+                "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "21:9", "9:21", "match_input_image"], {"default": "16:9", "tooltip": "Aspect ratio of the generated image"}),
+                "size": (["1K", "2K", "4K"], {"default": "2K", "tooltip": "Image resolution (seedream-4 only)"}),
+                "resolution": (["1K", "2K"], {"default": "2K", "tooltip": "Image resolution (dreamina-3.1 only)"}),
                 "guidance_scale": ("FLOAT", {"default": 2.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence/guidance scale (0-10)"}),
+                "enhance_prompt": ("BOOLEAN", {"default": False, "tooltip": "Enhance the prompt with LLM (dreamina-3.1 only)"}),
+                "legacy_size": (["small", "regular", "big"], {"default": "regular", "tooltip": "Legacy image dimensions (seedream-3 only)"}),
             }
         }
 
@@ -455,10 +461,16 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
         api_url,
         api_key,
         response_format,
-        reference_image=None,
+        image_input=None,
+        image_input_2=None,
+        image_input_3=None,
+        image_input_4=None,
         aspect_ratio="16:9",
-        size="regular",
-        guidance_scale=2.5
+        size="2K",
+        resolution="2K",
+        guidance_scale=2.5,
+        enhance_prompt=False,
+        legacy_size="regular"
     ):
         if len(prompt) > 10000:
             raise ValueError("Prompt must not exceed 10,000 characters")
@@ -466,8 +478,8 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
             raise ValueError("Prompt must be a non-empty string")
 
         # Validate model-specific requirements
-        if model == "seededit-3" and reference_image is None:
-            raise ValueError("seededit-3 model requires a reference image")
+        if model == "seededit-3" and image_input is None:
+            raise ValueError("seededit-3 model requires an input image")
 
         payload = {
             "model": model,
@@ -477,21 +489,63 @@ class Leon_ByteDance_Image_API_Node(HyprLabImageGenerationNodeBase):
         }
 
         # Add model-specific parameters
-        if model == "seededit-3":
-            # seededit-3 requires image input
-            if reference_image is not None:
-                image_data_uri = self._tensor_to_base64_data_uri(reference_image)
-                if image_data_uri:
-                    payload["image"] = image_data_uri
-            # seededit-3 uses guidance_scale (0-10)
-            if guidance_scale is not None:
-                payload["guidance_scale"] = guidance_scale
-        elif model == "seedream-3":
-            # seedream-3 uses aspect_ratio, size, and guidance_scale (1-10)
+        if model == "seedream-4":
+            # SEEDREAM 4.0 parameters - handle up to 4 image inputs like Nano Banana
+            image_inputs = []
+            
+            # Collect all non-None image inputs
+            for img_input in [image_input, image_input_2, image_input_3, image_input_4]:
+                if img_input is not None:
+                    image_data_uri = self._tensor_to_base64_data_uri(img_input)
+                    if image_data_uri:
+                        image_inputs.append(image_data_uri)
+            
+            # Set image_input in payload based on number of images
+            if len(image_inputs) == 1:
+                # Single image input - send as string
+                payload["image_input"] = image_inputs[0]
+            elif len(image_inputs) > 1:
+                # Multiple image inputs - send as array (up to 4)
+                payload["image_input"] = image_inputs
+            # If no image inputs, don't add image_input to payload (text-only mode)
+            
+            # Add aspect ratio and size for seedream-4
             if aspect_ratio:
                 payload["aspect_ratio"] = aspect_ratio
             if size:
                 payload["size"] = size
+            if guidance_scale is not None:
+                payload["guidance_scale"] = guidance_scale
+                
+        elif model == "dreamina-3.1":
+            # DREAMINA 3.1 parameters
+            if aspect_ratio and aspect_ratio != "match_input_image":  # dreamina-3.1 doesn't support match_input_image
+                payload["aspect_ratio"] = aspect_ratio
+            if resolution:
+                payload["resolution"] = resolution
+            if enhance_prompt is not None:
+                payload["enhance_prompt"] = enhance_prompt
+            # Note: dreamina-3.1 supports seed parameter directly in API
+            if seed is not None and seed != 0:
+                # Ensure seed is within valid range for dreamina-3.1 (0 to 4,294,967,295)
+                valid_seed = min(max(0, seed), 4294967295)
+                payload["seed"] = valid_seed
+                
+        elif model == "seededit-3":
+            # SEEDEDIT 3 parameters (existing implementation)
+            if image_input is not None:
+                image_data_uri = self._tensor_to_base64_data_uri(image_input)
+                if image_data_uri:
+                    payload["image"] = image_data_uri
+            if guidance_scale is not None:
+                payload["guidance_scale"] = guidance_scale
+                
+        elif model == "seedream-3":
+            # SEEDREAM 3 parameters (legacy implementation)
+            if aspect_ratio and aspect_ratio not in ["9:21", "match_input_image"]:  # seedream-3 doesn't support these
+                payload["aspect_ratio"] = aspect_ratio
+            if legacy_size:
+                payload["size"] = legacy_size
             if guidance_scale is not None:
                 # Ensure guidance_scale is at least 1 for seedream-3
                 guidance_scale = max(1.0, guidance_scale)
