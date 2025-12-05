@@ -82,24 +82,25 @@ class Leon_LLM_Chat_API_Node(HyprLabLLMNodeBase):
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "model": ("STRING", {"default": "gpt-4o", "tooltip": "Model name to use for chat completion"}),
+                "model": ("STRING", {"default": "gemini-flash-latest", "tooltip": "Model name to use for chat completion"}),
                 "user_message": ("STRING", {"multiline": True, "default": "Hello! How can you help me today?", "tooltip": "User message to send to the model"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/chat/completions", "tooltip": "API URL for chat completions"}),
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_HYPRLAB_API_KEY", "tooltip": "Your HyprLab API key"}),
             },
             "optional": {
                 "system_message": ("STRING", {"multiline": True, "default": "", "tooltip": "System message to set the assistant's behavior"}),
-                "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 1048576, "tooltip": "Maximum number of tokens to generate"}),
+                "max_tokens": ("INT", {"default": 128000, "min": 1, "max": 1048576, "tooltip": "Maximum number of tokens to generate"}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1, "tooltip": "Sampling temperature (0.0 to 2.0)"}),
                 "top_p": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.1, "tooltip": "Nucleus sampling parameter"}),
-                "input_image": ("IMAGE", {"tooltip": "Optional image input for vision-capable models (socket input)"}),
-                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional image URL for vision-capable models (URL input)"}),
+                "input_image": ("IMAGE", {"tooltip": "Optional single image input for vision-capable models"}),
+                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional image URL for vision-capable models"}),
+                "image_array": ("IMAGE_ARRAY", {"tooltip": "Optional array of images (base64 or URLs) for vision-capable models"}),
             }
         }
 
 
 
-    def chat_completion(self, model, user_message, api_url, api_key, system_message="", max_tokens=1000, temperature=0.7, top_p=1.0, input_image=None, image_url=""):
+    def chat_completion(self, model, user_message, api_url, api_key, system_message="", max_tokens=128000, temperature=0.7, top_p=1.0, input_image=None, image_url="", image_array=None):
         if not user_message.strip():
             raise ValueError("User message cannot be empty")
 
@@ -115,12 +116,21 @@ class Leon_LLM_Chat_API_Node(HyprLabLLMNodeBase):
         # Prepare user message content
         has_image_socket = input_image is not None
         has_image_url = image_url.strip() != ""
+        has_image_array = image_array is not None and len(image_array) > 0
         
-        if has_image_socket and has_image_url:
-            raise ValueError("Please provide either image socket input OR image URL, not both")
+        # Count how many image inputs are provided
+        image_input_count = sum([has_image_socket, has_image_url, has_image_array])
+        if image_input_count > 1:
+            raise ValueError("Please provide only ONE of: input_image, image_url, or image_array")
         
-        if has_image_socket or has_image_url:
-            # Vision model with image input
+        if has_image_array:
+            # Multiple images from IMAGE_ARRAY
+            user_content = [{"type": "text", "text": user_message}]
+            for img_data in image_array:
+                user_content.append({"type": "image_url", "image_url": {"url": img_data}})
+            print(f"🟢 LLM Chat: Processing {len(image_array)} images from IMAGE_ARRAY")
+        elif has_image_socket or has_image_url:
+            # Single image input
             if has_image_socket:
                 # Use socket input (convert tensor to base64)
                 image_data_uri = self._tensor_to_base64_data_uri(input_image)
@@ -174,16 +184,17 @@ class Leon_LLM_JSON_API_Node(HyprLabLLMNodeBase):
             },
             "optional": {
                 "system_message": ("STRING", {"multiline": True, "default": "You are a helpful assistant that extracts structured data.", "tooltip": "System message to set the assistant's behavior"}),
-                "max_tokens": ("INT", {"default": 1000, "min": 1, "max": 1048576, "tooltip": "Maximum number of tokens to generate"}),
+                "max_tokens": ("INT", {"default": 128000, "min": 1, "max": 1048576, "tooltip": "Maximum number of tokens to generate"}),
                 "temperature": ("FLOAT", {"default": 0.1, "min": 0.0, "max": 2.0, "step": 0.1, "tooltip": "Sampling temperature (lower for more consistent JSON)"}),
-                "input_image": ("IMAGE", {"tooltip": "Optional image input for vision-capable models (socket input)"}),
-                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional image URL for vision-capable models (URL input)"}),
+                "input_image": ("IMAGE", {"tooltip": "Optional single image input for vision-capable models"}),
+                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional image URL for vision-capable models"}),
+                "image_array": ("IMAGE_ARRAY", {"tooltip": "Optional array of images (base64 or URLs) for vision-capable models"}),
             }
         }
 
 
 
-    def json_completion(self, model, user_message, json_schema, api_url, api_key, system_message="You are a helpful assistant that extracts structured data.", max_tokens=1000, temperature=0.1, input_image=None, image_url=""):
+    def json_completion(self, model, user_message, json_schema, api_url, api_key, system_message="You are a helpful assistant that extracts structured data.", max_tokens=1000, temperature=0.1, input_image=None, image_url="", image_array=None):
         if not user_message.strip():
             raise ValueError("User message cannot be empty")
 
@@ -205,12 +216,21 @@ class Leon_LLM_JSON_API_Node(HyprLabLLMNodeBase):
         # Prepare user message content
         has_image_socket = input_image is not None
         has_image_url = image_url.strip() != ""
+        has_image_array = image_array is not None and len(image_array) > 0
         
-        if has_image_socket and has_image_url:
-            raise ValueError("Please provide either image socket input OR image URL, not both")
+        # Count how many image inputs are provided
+        image_input_count = sum([has_image_socket, has_image_url, has_image_array])
+        if image_input_count > 1:
+            raise ValueError("Please provide only ONE of: input_image, image_url, or image_array")
         
-        if has_image_socket or has_image_url:
-            # Vision model with image input
+        if has_image_array:
+            # Multiple images from IMAGE_ARRAY
+            user_content = [{"type": "text", "text": user_message}]
+            for img_data in image_array:
+                user_content.append({"type": "image_url", "image_url": {"url": img_data}})
+            print(f"🟢 LLM JSON: Processing {len(image_array)} images from IMAGE_ARRAY")
+        elif has_image_socket or has_image_url:
+            # Single image input
             if has_image_socket:
                 # Use socket input (convert tensor to base64)
                 image_data_uri = self._tensor_to_base64_data_uri(input_image)
