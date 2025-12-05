@@ -28,56 +28,40 @@ This package provides multiple categories of nodes to enhance your ComfyUI workf
 
 ## 🎨 Image Generation Nodes
 
-### Leon Google Image API 🤖
-Generate images using Google's Imagen models via HyprLab API.
+### Supported Image Models
 
-**Features:**
-- Models: imagen-4-ultra, imagen-4, imagen-4-fast, imagen-3, imagen-3-fast
-- Aspect ratios: 1:1, 3:4, 4:3, 9:16, 16:9
-- Output formats: PNG, JPEG, WebP
+- **Google**
+  - nano-banana
+  - imagen-4-ultra, imagen-4, imagen-4-fast
+  - imagen-3, imagen-3-fast
 
-**Usage Example:**
-1. Add "Leon Google Image API" node
-2. Enter your HyprLab API key
-3. Write your prompt (max 10,000 characters)
-4. Select model and settings
-5. Connect output to PreviewImage
+- **Luma AI**
+  - photon, photon-flash
 
-### Leon Luma AI Image API 🤖
-Advanced image generation with reference image support.
+- **FLUX**
+  - FLUX 1.1 Pro Ultra, FLUX 1.1 Pro
+  - FLUX Pro Canny
+  - FLUX Dev, FLUX Schnell
+  - FLUX Krea Dev
 
-**Features:**
-- Models: photon, photon-flash
-- Image/style/character reference inputs
-- Flexible aspect ratios including 9:21, 21:9
+- **FLUX Kontext**
+  - flux-kontext-max, flux-kontext-pro, flux-kontext-dev
 
-**Usage Example:**
-1. Add "Leon Luma AI Image API" node
-2. Connect reference images (optional)
-3. Set reference weights (0.0-1.0)
-4. Generate with enhanced control
+- **ByteDance**
+  - seedream-4
+  - dreamina-3.1
+  - seedream-3
+  - seededit-3
 
-### Leon FLUX Image API 🤖
-High-quality image generation with FLUX models.
+- **Ideogram**
+  - ideogram-v2, ideogram-v2-turbo
 
-**Features:**
-- Models: FLUX 1.1 Pro Ultra, FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell
-- Image prompt guidance
-- Flexible dimensions (256-1440px, multiples of 32)
+- **Recraft**
+  - recraft-v3
 
-**Usage Example:**
-1. Select FLUX model variant
-2. Add prompt and optional image guidance
-3. Configure steps, dimensions, aspect ratio
-4. Generate high-quality images
-
-### Leon FLUX Kontext API 🤖
-Context-aware image generation with input image support.
-
-**Features:**
-- Models: flux-kontext-max, flux-kontext-pro
-- Input image context understanding
-- Match input image aspect ratio option
+- **Qwen**
+  - qwen-image
+  - qwen-image-edit
 
 ## 🤖 LLM API Nodes
 
@@ -261,4 +245,4 @@ All nodes include robust error handling:
 
 ---
 
-**Acknowledge**: [ComfyUI_BillBum_Nodes](https://github.com/AhBumm/ComfyUI_BillBum_Nodes) | **Integrated with**: [HyprLab API](https://docs.hyprlab.io) 
+**Acknowledge**: [ComfyUI_BillBum_Nodes](https://github.com/AhBumm/ComfyUI_BillBum_Nodes) | **Integrated with**: [HyprLab API](https://docs.hyprlab.io)

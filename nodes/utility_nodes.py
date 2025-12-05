@@ -270,11 +270,128 @@ class Leon_Hypr_Upload_Node:
         raise ValueError(f"Unexpected HyprLab response format: {result}")
 
 
+class Leon_Image_Array_Builder_Node:
+    """Converts multiple image inputs into a list of base64-encoded strings or URLs, preserving original dimensions."""
+    CATEGORY = "Leon_Utils"
+    RETURN_TYPES = ("IMAGE_ARRAY",)  # Custom type: list of base64 strings or URLs
+    RETURN_NAMES = ("image_array",)
+    FUNCTION = "build_image_array"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "output_mode": (["base64", "url"], {"default": "base64", "tooltip": "Output format: 'base64' for data URIs, 'url' for uploaded image URLs"}),
+            },
+            "optional": {
+                "api_key": ("STRING", {"default": "", "multiline": False, "tooltip": "HyprLab API key (required when output_mode is 'url')"}),
+                "image_1": ("IMAGE", {"tooltip": "First image in the array"}),
+                "image_2": ("IMAGE", {"tooltip": "Second image in the array"}),
+                "image_3": ("IMAGE", {"tooltip": "Third image in the array"}),
+                "image_4": ("IMAGE", {"tooltip": "Fourth image in the array"}),
+                "image_5": ("IMAGE", {"tooltip": "Fifth image in the array"}),
+                "image_6": ("IMAGE", {"tooltip": "Sixth image in the array"}),
+                "image_7": ("IMAGE", {"tooltip": "Seventh image in the array"}),
+                "image_8": ("IMAGE", {"tooltip": "Eighth image in the array"}),
+            }
+        }
+
+    def _tensor_to_base64_data_uri(self, tensor_image):
+        """Convert a single IMAGE tensor to base64 data URI, preserving original dimensions."""
+        if tensor_image is None:
+            return None
+        
+        # Handle batch dimension
+        if tensor_image.ndim == 4:
+            tensor_image = tensor_image[0]
+        
+        # Convert to numpy and PIL
+        np_image = (tensor_image.cpu().numpy() * 255).astype(np.uint8)
+        pil_image = Image.fromarray(np_image, 'RGBA' if np_image.shape[-1] == 4 else 'RGB')
+        
+        # Convert to base64 data URI
+        buffer = io.BytesIO()
+        pil_image.save(buffer, format="PNG")
+        base64_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        return f"data:image/png;base64,{base64_str}"
+
+    def _tensor_to_bytes(self, tensor_image):
+        """Convert a ComfyUI IMAGE tensor to PNG bytes for upload."""
+        if tensor_image.ndim == 4:
+            tensor_image = tensor_image[0]
+        np_image = (tensor_image.cpu().numpy() * 255).astype(np.uint8)
+        pil_image = Image.fromarray(np_image, 'RGBA' if np_image.shape[-1] == 4 else 'RGB')
+        buffer = io.BytesIO()
+        pil_image.save(buffer, format="PNG")
+        buffer.seek(0)
+        return buffer
+
+    def _upload_to_hyprlab(self, tensor_image, api_key):
+        """Upload a single image to HyprLab and return the URL."""
+        endpoint = "https://api.hyprlab.io/v1/uploads"
+        headers = {"Authorization": f"Bearer {api_key.strip()}"}
+        
+        buffer = self._tensor_to_bytes(tensor_image)
+        files = {"file": ("image.png", buffer, "image/png")}
+        
+        response = requests.post(endpoint, headers=headers, files=files)
+        response.raise_for_status()
+        result = response.json()
+        
+        for key in ("imageUrl", "videoUrl", "url"):
+            if key in result:
+                return result[key]
+        raise ValueError(f"Unexpected HyprLab response format: {result}")
+
+    def build_image_array(self, output_mode, api_key="", image_1=None, image_2=None, image_3=None, image_4=None, 
+                          image_5=None, image_6=None, image_7=None, image_8=None):
+        """Converts provided images into an array of base64-encoded strings or URLs, maintaining order and original dimensions."""
+        
+        # Validate API key when using URL mode
+        if output_mode == "url" and (not api_key or not api_key.strip()):
+            raise ValueError("HyprLab API Key is required when output_mode is 'url'.")
+        
+        image_array = []
+        image_inputs = [image_1, image_2, image_3, image_4, image_5, image_6, image_7, image_8]
+        
+        for idx, img in enumerate(image_inputs, 1):
+            if img is not None:
+                # Get original dimensions for logging
+                if img.ndim == 4:
+                    height, width = img.shape[1], img.shape[2]
+                else:
+                    height, width = img.shape[0], img.shape[1]
+                
+                if output_mode == "url":
+                    # Upload to HyprLab and get URL
+                    try:
+                        url = self._upload_to_hyprlab(img, api_key)
+                        image_array.append(url)
+                        print(f"🟢 Image Array Builder: Uploaded image {idx} ({width}x{height}) → {url[:60]}...")
+                    except Exception as e:
+                        raise ValueError(f"Failed to upload image {idx}: {str(e)}")
+                else:
+                    # Convert to base64 data URI
+                    data_uri = self._tensor_to_base64_data_uri(img)
+                    if data_uri:
+                        image_array.append(data_uri)
+                        print(f"🟢 Image Array Builder: Added image {idx} ({width}x{height}) as base64")
+        
+        if not image_array:
+            raise ValueError("At least one image must be provided to Image Array Builder.")
+        
+        mode_label = "URLs" if output_mode == "url" else "base64 data URIs"
+        print(f"🟢 Image Array Builder: Created array of {len(image_array)} {mode_label} (preserving original dimensions)")
+        return (image_array,)
+
+
+
 UTIL_NODE_CLASS_MAPPINGS = {
     "Leon_Image_Split_4Grid_Node": Leon_Image_Split_4Grid_Node,
     "Leon_String_Combine_Node": Leon_String_Combine_Node,
     "Leon_ImgBB_Upload_Node": Leon_ImgBB_Upload_Node,
     "Leon_Hypr_Upload_Node": Leon_Hypr_Upload_Node,
+    "Leon_Image_Array_Builder_Node": Leon_Image_Array_Builder_Node,
 }
 
 UTIL_NODE_DISPLAY_NAME_MAPPINGS = {
@@ -282,4 +399,5 @@ UTIL_NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_String_Combine_Node": "🤖 Leon String Combine",
     "Leon_ImgBB_Upload_Node": "🤖 Leon ImgBB Upload",
     "Leon_Hypr_Upload_Node": "🤖 Leon Hypr Upload",
+    "Leon_Image_Array_Builder_Node": "🤖 Leon Image Array Builder",
 } 

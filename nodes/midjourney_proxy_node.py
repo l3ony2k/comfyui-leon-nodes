@@ -147,7 +147,6 @@ class Leon_Midjourney_Describe_API_Node:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE", {"tooltip": "Input image to describe"}),
                 "mj_proxy_endpoint": ("STRING", {"multiline": False, "default": "http://localhost:8080", "tooltip": "Base URL of your Midjourney Proxy (e.g., http://localhost:8080)"}),
                 "api_key": ("STRING", {"multiline": False, "default": "sk-midjourney", "tooltip": "Your API key for the proxy (used for both mj-api-secret and X-Api-Key headers)"}),
                 "bot_type": (["MID_JOURNEY", "NIJI_JOURNEY"], {"default": "MID_JOURNEY"}),
@@ -155,6 +154,8 @@ class Leon_Midjourney_Describe_API_Node:
                 "max_polling_attempts": ("INT", {"default": 30, "min": 1, "max": 120, "tooltip": "Max attempts to poll for result before timeout"}),
             },
             "optional": {
+                "image": ("IMAGE", {"tooltip": "Input image to describe"}),
+                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional hosted image URL to describe (use instead of socket input)"}),
                 "account_filter_remark": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional: Remark for account filtering (e.g., lzn)"}),
             }
         }
@@ -190,6 +191,17 @@ class Leon_Midjourney_Describe_API_Node:
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
         return f"data:image/jpeg;base64,{img_base64}"
 
+    def _resolve_image_input(self, image_tensor, image_url="", field_name="image"):
+        """Prefer an explicit URL when provided, otherwise convert the tensor to base64."""
+        url = (image_url or "").strip()
+        if image_tensor is not None and url:
+            raise ValueError(f"{field_name}: provide either an image tensor or an image URL, not both.")
+        if url:
+            return url
+        if image_tensor is not None:
+            return self._tensor_to_base64(image_tensor)
+        return None
+
     def _parse_descriptions(self, prompt_text):
         """Parse the prompt text and extract 4 descriptions."""
         if not prompt_text:
@@ -216,16 +228,17 @@ class Leon_Midjourney_Describe_API_Node:
         
         return tuple(descriptions[:4])
 
-    def describe_mj_image(self, image, mj_proxy_endpoint, api_key, bot_type,
+    def describe_mj_image(self, mj_proxy_endpoint, api_key, bot_type,
                           polling_interval_seconds, max_polling_attempts,
-                          account_filter_remark=""):
+                          image=None, image_url="", account_filter_remark=""):
         
-        # Convert image tensor to base64
-        base64_image = self._tensor_to_base64(image)
+        image_payload_value = self._resolve_image_input(image, image_url, field_name="image")
+        if not image_payload_value:
+            raise ValueError("An image tensor or image URL must be provided for Midjourney describe.")
         
         submit_url = f"{mj_proxy_endpoint.rstrip('/')}/mj/submit/describe"
         headers = {'Content-Type': 'application/json', 'mj-api-secret': api_key, 'X-Api-Key': api_key}
-        payload = {"botType": bot_type, "base64": base64_image}
+        payload = {"botType": bot_type, "base64": image_payload_value}
 
         if account_filter_remark.strip():
             payload["accountFilter"] = {"remark": account_filter_remark.strip()}
@@ -308,11 +321,12 @@ class Leon_Midjourney_Upload_API_Node:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE", {"tooltip": "Input image to upload to Discord"}),
                 "mj_proxy_endpoint": ("STRING", {"multiline": False, "default": "http://localhost:8080", "tooltip": "Base URL of your Midjourney Proxy (e.g., http://localhost:8080)"}),
                 "api_key": ("STRING", {"multiline": False, "default": "sk-midjourney", "tooltip": "Your API key for the proxy (used for both mj-api-secret and X-Api-Key headers)"}),
             },
             "optional": {
+                "image": ("IMAGE", {"tooltip": "Input image to upload to Discord"}),
+                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional hosted image URL to upload (use instead of socket input)"}),
                 "account_filter_remark": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional: Remark for account filtering (e.g., lzn)"}),
             }
         }
@@ -348,14 +362,24 @@ class Leon_Midjourney_Upload_API_Node:
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
         return f"data:image/jpeg;base64,{img_base64}"
 
-    def upload_mj_image(self, image, mj_proxy_endpoint, api_key, account_filter_remark=""):
-        
-        # Convert image tensor to base64
-        base64_image = self._tensor_to_base64(image)
+    def _resolve_image_input(self, image_tensor, image_url=""):
+        url = (image_url or "").strip()
+        if image_tensor is not None and url:
+            raise ValueError("image: provide either an image tensor or an image URL, not both.")
+        if url:
+            return url
+        if image_tensor is not None:
+            return self._tensor_to_base64(image_tensor)
+        return None
+
+    def upload_mj_image(self, mj_proxy_endpoint, api_key, image=None, image_url="", account_filter_remark=""):
+        image_payload_value = self._resolve_image_input(image, image_url)
+        if not image_payload_value:
+            raise ValueError("Provide an image tensor or an image URL for Midjourney upload.")
         
         submit_url = f"{mj_proxy_endpoint.rstrip('/')}/mj/submit/upload-discord-images"
         headers = {'Content-Type': 'application/json', 'mj-api-secret': api_key, 'X-Api-Key': api_key}
-        payload = {"base64Array": [base64_image]}
+        payload = {"base64Array": [image_payload_value]}
 
         if account_filter_remark.strip():
             payload["filter"] = {"remark": account_filter_remark.strip()}

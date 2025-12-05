@@ -109,6 +109,48 @@ class OpenAIImageGenerationNodeBase:
         base64_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
         return f"data:image/png;base64,{base64_str}"
 
+    def _resolve_image_input(self, tensor_image, image_url="", field_name="image"):
+        """
+        Prefer URL inputs when provided, otherwise encode tensors as base64 data URIs.
+        """
+        url = (image_url or "").strip()
+        if tensor_image is not None and url:
+            raise ValueError(f"{field_name}: provide either an image tensor or an image URL, not both.")
+        if url:
+            return url
+        if tensor_image is not None:
+            return self._tensor_to_base64_data_uri(tensor_image)
+        return None
+
+    def _parse_image_url_list(self, image_urls_value):
+        """
+        Accept comma/newline separated strings or JSON arrays and return a clean list of URLs.
+        """
+        url_field = (image_urls_value or "").strip()
+        if not url_field:
+            return []
+
+        try:
+            parsed = json.loads(url_field)
+            if isinstance(parsed, list):
+                urls = [str(item).strip() for item in parsed if str(item).strip()]
+                if urls:
+                    return urls
+        except json.JSONDecodeError:
+            pass
+
+        if "\n" in url_field:
+            urls = [part.strip() for part in url_field.splitlines() if part.strip()]
+            if urls:
+                return urls
+
+        if "," in url_field:
+            urls = [part.strip() for part in url_field.split(",") if part.strip()]
+            if urls:
+                return urls
+
+        return [url_field]
+
 
 class Leon_DALLE_Image_API_Node(OpenAIImageGenerationNodeBase):
     CATEGORY = "Leon_API"
@@ -207,8 +249,11 @@ class Leon_GPT_Image_API_Node(OpenAIImageGenerationNodeBase):
             },
             "optional": {
                 "input_image": ("IMAGE", {"tooltip": "Optional input image for image-to-image generation"}),
+                "input_image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional input image URL for image-to-image generation"}),
                 "input_images": ("IMAGE", {"tooltip": "Optional multiple input images (will be converted to array)"}),
+                "input_images_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional multiple image URLs (comma/newline separated or JSON array)"}),
                 "mask_image": ("IMAGE", {"tooltip": "Optional mask image for inpainting"}),
+                "mask_image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Optional mask image URL for inpainting"}),
             }
         }
 
@@ -227,8 +272,11 @@ class Leon_GPT_Image_API_Node(OpenAIImageGenerationNodeBase):
         api_url,
         api_key,
         input_image=None,
+        input_image_url="",
         input_images=None,
-        mask_image=None
+        input_images_url="",
+        mask_image=None,
+        mask_image_url=""
     ):
         if not prompt.strip():
             raise ValueError("Prompt must be a non-empty string")
@@ -246,23 +294,35 @@ class Leon_GPT_Image_API_Node(OpenAIImageGenerationNodeBase):
         }
 
         # Handle single image input
-        if input_image is not None:
-            image_data_uri = self._tensor_to_base64_data_uri(input_image)
-            if image_data_uri:
-                payload["image"] = image_data_uri
+        resolved_single_image = self._resolve_image_input(
+            input_image, input_image_url, field_name="image"
+        )
+        if resolved_single_image:
+            payload["image"] = resolved_single_image
 
         # Handle multiple image inputs
+        input_images_url_str = (input_images_url or "").strip()
+
+        if input_images is not None and input_images_url_str:
+            raise ValueError("Provide either input_images tensor input or input_images_url, not both.")
+
         if input_images is not None:
-            # For multiple images, we'll treat it as an array
-            image_data_uri = self._tensor_to_base64_data_uri(input_images)
-            if image_data_uri:
-                payload["image"] = [image_data_uri]  # Convert to array format
+            multi_image_data = self._resolve_image_input(
+                input_images, "", field_name="input_images"
+            )
+            if multi_image_data:
+                payload["image"] = [multi_image_data]
+        else:
+            multi_urls = self._parse_image_url_list(input_images_url_str)
+            if multi_urls:
+                payload["image"] = multi_urls
 
         # Handle mask image
-        if mask_image is not None:
-            mask_data_uri = self._tensor_to_base64_data_uri(mask_image)
-            if mask_data_uri:
-                payload["mask"] = mask_data_uri
+        resolved_mask_image = self._resolve_image_input(
+            mask_image, mask_image_url, field_name="mask"
+        )
+        if resolved_mask_image:
+            payload["mask"] = resolved_mask_image
 
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
