@@ -1,4 +1,4 @@
-from .base.hyprlab_base import HyprLabImageGenerationNodeBase
+from ..base.hyprlab_base import HyprLabImageGenerationNodeBase
 
 # Qwen Image Generation Nodes
 

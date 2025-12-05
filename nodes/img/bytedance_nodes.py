@@ -1,4 +1,4 @@
-from .base.hyprlab_base import HyprLabImageGenerationNodeBase
+from ..base.hyprlab_base import HyprLabImageGenerationNodeBase
 
 # ByteDance Seedream 4 Image Generation Node
 
@@ -30,7 +30,7 @@ class Leon_Seedream4_API_Node(HyprLabImageGenerationNodeBase):
             "optional": {
                 "input_images_array": ("IMAGE_ARRAY", {"tooltip": "Array of input images for guidance (up to 4). Connect Image Array Builder node output here."}),
                 "aspect_ratio": (cls.ASPECT_RATIO_CHOICES, {"default": "1:1", "tooltip": "Aspect ratio of the generated image"}),
-                "size": (["1K", "2K", "4K"], {"default": "4K", "tooltip": "Image resolution (1K/2K/4K)"}),
+                "size": (["1K", "2K", "4K"], {"default": "1K", "tooltip": "Image resolution (1K/2K/4K)"}),
                 "guidance_scale": ("FLOAT", {"default": 2.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence (0-10)"}),
             }
         }
@@ -113,7 +113,7 @@ class Leon_Seedream3_API_Node(HyprLabImageGenerationNodeBase):
                 "input_images_array": ("IMAGE_ARRAY", {"tooltip": "Array of input images. SEEDEDIT-3 requires at least 1 image. Connect Image Array Builder node output here."}),
                 "aspect_ratio": (cls.ASPECT_RATIO_CHOICES, {"default": "1:1", "tooltip": "🟢 SEEDREAM-3/DREAMINA-3.1: Aspect ratio | ❌ SEEDEDIT-3: Not supported"}),
                 "legacy_size": (["small", "regular", "big"], {"default": "big", "tooltip": "🟢 SEEDREAM-3 ONLY: Legacy image dimensions"}),
-                "resolution": (["1K", "2K"], {"default": "2K", "tooltip": "🟢 DREAMINA-3.1 ONLY: Image resolution (1K/2K)"}),
+                "resolution": (["1K", "2K"], {"default": "1K", "tooltip": "🟢 DREAMINA-3.1 ONLY: Image resolution (1K/2K)"}),
                 "guidance_scale": ("FLOAT", {"default": 2.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "🟢 SEEDREAM-3/SEEDEDIT-3: Prompt adherence (min 1.0 for SEEDREAM-3)"}),
                 "enhance_prompt": ("BOOLEAN", {"default": False, "tooltip": "🟢 DREAMINA-3.1 ONLY: Enhance the prompt with LLM"}),
             }
