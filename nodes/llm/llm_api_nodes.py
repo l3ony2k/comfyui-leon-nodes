@@ -176,7 +176,7 @@ class Leon_LLM_JSON_API_Node(HyprLabLLMNodeBase):
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "model": ("STRING", {"default": "gpt-4o", "tooltip": "Model name to use for JSON completion"}),
+                "model": ("STRING", {"default": "", "tooltip": "Model name to use for JSON completion"}),
                 "user_message": ("STRING", {"multiline": True, "default": "Extract the email address from this text: Contact us at support@example.com", "tooltip": "User message to send to the model"}),
                 "json_schema": ("STRING", {"multiline": True, "default": '{"type": "object", "properties": {"email": {"type": "string", "description": "The extracted email address"}}, "required": ["email"]}', "tooltip": "JSON schema for structured output"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/chat/completions", "tooltip": "API URL for chat completions"}),
@@ -287,7 +287,7 @@ class Leon_Model_Selector_Node:
         
         return {
             "required": {
-                "model_choice": (model_choices, {"default": model_choices[0] if model_choices else "gpt-4o", "tooltip": "Select a model from available options"}),
+                "model_choice": (model_choices, {"default": model_choices[0] if model_choices else "gemini-flash-latest", "tooltip": "Select a model from available options"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/models", "tooltip": "API URL to fetch models list"}),
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_HYPRLAB_API_KEY", "tooltip": "Your HyprLab API key"}),
             },
