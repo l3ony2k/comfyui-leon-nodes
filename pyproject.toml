@@ -1,15 +1,14 @@
 [project]
-name = "comfyui_leon_nodes"
-description = "ComfyUI custom nodes for Google Imagen models via HyprLab API. Generate high-quality images using imagen-4, imagen-3, and imagen-3-fast with flexible aspect ratios and output formats."
+name = "comfyui-leon-nodes"
+description = "ComfyUI custom nodes with multiple API integrations: Google Imagen (via HyprLab), FLUX Image & Kontext, Luma AI, Midjourney proxy, ImgBB upload, HyprLab upload, and utility nodes for string manipulation and image splitting."
 version = "1.0.0"
 license = {text = "MIT"}
 dependencies = ["tenacity", "requests", "pillow", "torch", "numpy"]
 
 [project.urls]
-Repository = "https://github.com/your-username/comfyui-leon-nodes"
-Documentation = "https://docs.hyprlab.io/browse-models/model-list/google/image"
+Repository = "https://github.com/l3ony2k/comfyui-leon-nodes"
 
 [tool.comfy]
-PublisherId = "leon"
-DisplayName = "ComfyUI Leon Nodes - Google Imagen API"
-Icon = "" 
+PublisherId = "lok"
+DisplayName = "ComfyUI Leon Nodes"
+Icon = ""
