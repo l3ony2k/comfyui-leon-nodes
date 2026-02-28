@@ -347,10 +347,12 @@ class Leon_Nano_Banana_Edit_Tuzi_API_Node(HyprLabImageGenerationNodeBase):
         except requests.exceptions.RequestException as e:
             raise Exception(f"API request failed: {str(e)}")
         except KeyError as e:
-            print(f"Full error response for KeyError: {response.text if 'response' in locals() else 'Response object not available'}")
+            err_text = response.text if 'response' in locals() else 'Response object not available'
+            print(f"Full error response for KeyError: {self._format_error_response(err_text)}")
             raise Exception(f"Unexpected response format (KeyError): {str(e)}. Check API documentation and response structure.")
         except Exception as e:
-            print(f"Full error response for other Exception: {response.text if 'response' in locals() else 'Response object not available'}")
+            err_text = response.text if 'response' in locals() else 'Response object not available'
+            print(f"Full error response for other Exception: {self._format_error_response(err_text)}")
             raise Exception(f"Image edit failed: {str(e)}")
 
 

@@ -14,6 +14,16 @@ import base64 # Leon_Midjourney_Proxy_API_Node uses json.loads for base64_array_
              # However, it might be good practice to keep it if similar ops are added later.
              # More critically, the original file had it at the top.
 
+def __sanitize_payload_for_logging(obj):
+    if isinstance(obj, dict):
+        return {k: __sanitize_payload_for_logging(v) for k, v in obj.items()}
+    elif isinstance(obj, list) or isinstance(obj, tuple):
+        return [__sanitize_payload_for_logging(v) for v in obj]
+    elif isinstance(obj, str) and len(obj) > 200:
+        if obj.startswith("data:image") or len(obj) > 1000:
+            return obj[:50] + f"... [truncated {len(obj)} chars]"
+    return obj
+
 class Leon_Midjourney_Proxy_API_Node:
     CATEGORY = "Leon_API"
     RETURN_TYPES = ("IMAGE", "STRING", "STRING", "STRING", "STRING")
@@ -67,7 +77,7 @@ class Leon_Midjourney_Proxy_API_Node:
         print(f"MJ Proxy: Submitting to {submit_url}")
         headers_to_print = {k: (v if k not in ['mj-api-secret', 'X-Api-Key'] else '***') for k, v in headers.items()}
         print(f"MJ Proxy: Headers: {json.dumps(headers_to_print)}")
-        print(f"MJ Proxy: Payload: {json.dumps(payload)}")
+        print(f"MJ Proxy: Payload: {json.dumps(__sanitize_payload_for_logging(payload))}")
 
         try:
             response = requests.post(submit_url, json=payload, headers=headers)
@@ -247,7 +257,7 @@ class Leon_Midjourney_Describe_API_Node:
         headers_to_print = {k: (v if k not in ['mj-api-secret', 'X-Api-Key'] else '***') for k, v in headers.items()}
         print(f"MJ Proxy: Headers: {json.dumps(headers_to_print)}")
         payload_to_print = {k: (v if k != 'base64' else f"data:image/jpeg;base64,[{len(v.split(',')[1]) if ',' in v else 0} chars]") for k, v in payload.items()}
-        print(f"MJ Proxy: Payload: {json.dumps(payload_to_print)}")
+        print(f"MJ Proxy: Payload: {json.dumps(__sanitize_payload_for_logging(payload_to_print))}")
 
         try:
             response = requests.post(submit_url, json=payload, headers=headers)
@@ -388,7 +398,7 @@ class Leon_Midjourney_Upload_API_Node:
         headers_to_print = {k: (v if k not in ['mj-api-secret', 'X-Api-Key'] else '***') for k, v in headers.items()}
         print(f"MJ Proxy: Headers: {json.dumps(headers_to_print)}")
         payload_to_print = {k: (v if k != 'base64Array' else f"[image base64 data: {len(v[0].split(',')[1]) if v and ',' in v[0] else 0} chars]") for k, v in payload.items()}
-        print(f"MJ Proxy: Payload: {json.dumps(payload_to_print)}")
+        print(f"MJ Proxy: Payload: {json.dumps(__sanitize_payload_for_logging(payload_to_print))}")
 
         try:
             response = requests.post(submit_url, json=payload, headers=headers)

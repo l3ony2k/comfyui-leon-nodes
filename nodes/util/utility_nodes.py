@@ -156,11 +156,28 @@ class Leon_ImgBB_Upload_Node:
                      error_message = result.get("status_txt")
                 
                 status_code = result.get("status_code", response.status_code)
-                raise ValueError(f"ImgBB API Error (Code: {status_code}): {error_message}. Full response: {json.dumps(result)}")
+                try:
+                    result_clean = self.__sanitize_json_obj(result)
+                except Exception:
+                    result_clean = result
+                raise ValueError(f"ImgBB API Error (Code: {status_code}): {error_message}. Full response: {json.dumps(result_clean)}")
         except requests.exceptions.RequestException as e:
             raise ValueError(f"ImgBB upload request failed: {str(e)}")
         except Exception as e:
-            raise ValueError(f"ImgBB upload error: {str(e)}. Response text (if available): {response.text if 'response' in locals() else 'N/A'}")
+            err_text = response.text if 'response' in locals() else 'N/A'
+            if len(err_text) > 2000:
+                err_text = err_text[:2000] + '...[truncated]'
+            raise ValueError(f"ImgBB upload error: {str(e)}. Response text (if available): {err_text}")
+
+    def __sanitize_json_obj(self, obj):
+        if isinstance(obj, dict):
+            return {k: self.__sanitize_json_obj(v) for k, v in obj.items()}
+        elif isinstance(obj, list) or isinstance(obj, tuple):
+            return [self.__sanitize_json_obj(v) for v in obj]
+        elif isinstance(obj, str) and len(obj) > 200:
+            if obj.startswith("data:image") or len(obj) > 1000:
+                return obj[:50] + f"... [truncated {len(obj)} chars]"
+        return obj
 
 
 class Leon_Hypr_Upload_Node:
@@ -261,7 +278,10 @@ class Leon_Hypr_Upload_Node:
         except requests.exceptions.RequestException as e:
             raise ValueError(f"HyprLab upload request failed: {str(e)}")
         except Exception:
-            raise ValueError(f"Failed to parse HyprLab response. Status: {response.status_code}. Content: {response.text}")
+            err_text = response.text if 'response' in locals() else 'N/A'
+            if len(err_text) > 2000:
+                err_text = err_text[:2000] + '...[truncated]'
+            raise ValueError(f"Failed to parse HyprLab response. Status: {response.status_code if 'response' in locals() else 'N/A'}. Content: {err_text}")
 
         # Extract URL from response
         for key in ("imageUrl", "videoUrl", "url"):

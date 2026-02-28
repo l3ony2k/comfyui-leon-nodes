@@ -26,13 +26,13 @@ class HyprLabLLMNodeBase:
             response = requests.post(api_url.rstrip('/'), json=payload, headers=headers)
             
             print(f"LLM API Request URL: {api_url.rstrip('/')}")
-            print(f"LLM API Request Payload: {json.dumps(payload, indent=2)}")
+            print(f"LLM API Request Payload: {json.dumps(self._sanitize_payload_for_logging(payload), indent=2)}")
             print(f"HTTP status: {response.status_code}")
             
             response.raise_for_status()
             response_json = response.json()
             
-            print(f"LLM API Response: {json.dumps(response_json, indent=2)}")
+            print(f"LLM API Response: {json.dumps(self._sanitize_payload_for_logging(response_json), indent=2)}")
             
             # Extract the response text
             if "choices" in response_json and len(response_json["choices"]) > 0:
@@ -47,8 +47,29 @@ class HyprLabLLMNodeBase:
         except requests.exceptions.RequestException as e:
             raise Exception(f"LLM API request failed: {str(e)}")
         except Exception as e:
-            print(f"Full error response: {response.text if 'response' in locals() else 'Response object not available'}")
+            err_text = response.text if 'response' in locals() else 'Response object not available'
+            print(f"Full error response: {self._format_error_response(err_text)}")
             raise Exception(f"LLM API call failed: {str(e)}")
+
+    def _format_error_response(self, err_text):
+        try:
+            parsed = json.loads(err_text)
+            sanitized = self._sanitize_payload_for_logging(parsed)
+            return json.dumps(sanitized)
+        except Exception:
+            if len(err_text) > 5000:
+                return err_text[:5000] + '...[truncated]'
+            return err_text
+
+    def _sanitize_payload_for_logging(self, obj):
+        if isinstance(obj, dict):
+            return {k: self._sanitize_payload_for_logging(v) for k, v in obj.items()}
+        elif isinstance(obj, list) or isinstance(obj, tuple):
+            return [self._sanitize_payload_for_logging(v) for v in obj]
+        elif isinstance(obj, str) and len(obj) > 200:
+            if obj.startswith("data:image") or len(obj) > 1000:
+                return obj[:50] + f"... [truncated {len(obj)} chars]"
+        return obj
 
     def _tensor_to_base64_data_uri(self, tensor_image):
         if tensor_image is None:

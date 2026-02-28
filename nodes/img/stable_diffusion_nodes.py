@@ -43,7 +43,7 @@ class StableDiffusionImageGenerationNodeBase:
             response = requests.post(api_url.rstrip('/'), json=payload, headers=headers)
             
             print(f"API Request URL: {api_url.rstrip('/')}")
-            print(f"API Request Payload: {json.dumps(payload)}")
+            print(f"API Request Payload: {json.dumps(self._sanitize_payload_for_logging(payload))}")
             print(f"HTTP status: {response.status_code}")
             response_text_to_print = response.text
             if "b64_json" in response_text_to_print and len(response_text_to_print) > 1000:
@@ -88,12 +88,34 @@ class StableDiffusionImageGenerationNodeBase:
         except requests.exceptions.RequestException as e:
             raise Exception(f"API request failed: {str(e)}")
         except KeyError as e:
-            print(f"Full error response for KeyError: {response.text if 'response' in locals() else 'Response object not available'}")
+            err_text = response.text if 'response' in locals() else 'Response object not available'
+            print(f"Full error response for KeyError: {self._format_error_response(err_text)}")
             raise Exception(f"Unexpected response format (KeyError): {str(e)}. Check API documentation and response structure.")
         except Exception as e:
-            print(f"Full error response for other Exception: {response.text if 'response' in locals() else 'Response object not available'}")
+            err_text = response.text if 'response' in locals() else 'Response object not available'
+            print(f"Full error response for other Exception: {self._format_error_response(err_text)}")
             raise Exception(f"Image generation failed: {str(e)}")
 
+    def _format_error_response(self, err_text):
+        try:
+            parsed = json.loads(err_text)
+            sanitized = self._sanitize_payload_for_logging(parsed)
+            return json.dumps(sanitized)
+        except Exception:
+            if len(err_text) > 5000:
+                return err_text[:5000] + '...[truncated]'
+            return err_text
+
+
+    def _sanitize_payload_for_logging(self, obj):
+        if isinstance(obj, dict):
+            return {k: self._sanitize_payload_for_logging(v) for k, v in obj.items()}
+        elif isinstance(obj, list) or isinstance(obj, tuple):
+            return [self._sanitize_payload_for_logging(v) for v in obj]
+        elif isinstance(obj, str) and len(obj) > 200:
+            if obj.startswith("data:image") or len(obj) > 1000:
+                return obj[:50] + f"... [truncated {len(obj)} chars]"
+        return obj
 
 class Leon_StableDiffusion_35_API_Node(StableDiffusionImageGenerationNodeBase):
     CATEGORY = "Leon_API"
