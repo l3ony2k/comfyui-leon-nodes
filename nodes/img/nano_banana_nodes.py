@@ -128,7 +128,7 @@ class Leon_Nano_Banana_Tuzi_API_Node(HyprLabImageGenerationNodeBase):
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "a cat.", "tooltip": "Text description of the desired image. Maximum length 1000 characters."}),
-                "model": (["nano-banana-pro", "nano-banana-pro-2k", "nano-banana-pro-vip", "gemini-3.1-flash-image-preview"], {"default": "nano-banana-pro", "tooltip": "Nano Banana 2 model variants"}),
+                "model": (["nano-banana-pro", "nano-banana-pro-2k", "nano-banana-pro-vip", "nano-banana-2"], {"default": "nano-banana-pro", "tooltip": "Nano Banana 2 model variants"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your Tuzi API key"}),
                 "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "Format for returning the generated image. Must be either url or b64_json."}),
@@ -210,7 +210,7 @@ class Leon_Nano_Banana_Edit_Tuzi_API_Node(HyprLabImageGenerationNodeBase):
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "merge two images", "tooltip": "Text description of the desired image. Maximum length 1000 characters."}),
-                "model": (["nano-banana-pro", "nano-banana-pro-2k", "nano-banana-pro-vip", "gemini-3.1-flash-image-preview"], {"default": "nano-banana-pro", "tooltip": "Nano Banana 2 model variants"}),
+                "model": (["nano-banana-pro", "nano-banana-pro-2k", "nano-banana-pro-vip", "nano-banana-2"], {"default": "nano-banana-pro", "tooltip": "Nano Banana 2 model variants"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your Tuzi API key"}),
                 "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "Format for returning the generated image. Must be either url or b64_json."}),
