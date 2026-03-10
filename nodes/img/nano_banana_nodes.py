@@ -29,7 +29,7 @@ class Leon_Nano_Banana_API_Node(HyprLabImageGenerationNodeBase):
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "Make the cat jump.", "tooltip": "Main text prompt that influences the output generation"}),
-                "model": (["nano-banana-pro", "nano-banana"], {"default": "nano-banana-pro", "tooltip": "Nano Banana model: pro version supports resolution control"}),
+                "model": (["nano-banana-2", "nano-banana-pro", "nano-banana"], {"default": "nano-banana-2", "tooltip": "Nano Banana model: pro version supports resolution control"}),
                 "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
@@ -39,7 +39,7 @@ class Leon_Nano_Banana_API_Node(HyprLabImageGenerationNodeBase):
             "optional": {
                 "input_images_array": ("IMAGE_ARRAY", {"tooltip": "Array of input images (up to 4). Connect Image Array Builder node output here."}),
                 "aspect_ratio": (cls.ASPECT_RATIO_CHOICES, {"default": "1:1", "tooltip": "Aspect ratio of the generated image (match_input_image requires at least one image input)"}),
-                "resolution": (["1K", "2K", "4K"], {"default": "2K", "tooltip": "🟢 NANO-BANANA-PRO ONLY: Image resolution (1K/2K/4K)"}),
+                "resolution": (["1K", "2K", "4K"], {"default": "1K", "tooltip": "🟢 NANO-BANANA-PRO ONLY: Image resolution (1K/2K/4K)"}),
             }
         }
 
