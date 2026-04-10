@@ -1,9 +1,9 @@
 from ..base.hyprlab_base import HyprLabImageGenerationNodeBase
 
-# ByteDance Seedream 4 Image Generation Node
+# ByteDance Seedream 4.5 Image Generation Node
 
 class Leon_Seedream4_API_Node(HyprLabImageGenerationNodeBase):
-    """Seedream 4.0 - Latest ByteDance image generation model with multi-image support."""
+    """Seedream 4.5 - Latest ByteDance image generation model with multi-image support."""
     CATEGORY = "Leon_API"
     RETURN_TYPES = ("IMAGE", "STRING", "INT")
     RETURN_NAMES = ("image", "image_url", "seed")
@@ -30,8 +30,7 @@ class Leon_Seedream4_API_Node(HyprLabImageGenerationNodeBase):
             "optional": {
                 "input_images_array": ("IMAGE_ARRAY", {"tooltip": "Array of input images for guidance (up to 4). Connect Image Array Builder node output here."}),
                 "aspect_ratio": (cls.ASPECT_RATIO_CHOICES, {"default": "1:1", "tooltip": "Aspect ratio of the generated image"}),
-                "size": (["1K", "2K", "4K"], {"default": "1K", "tooltip": "Image resolution (1K/2K/4K)"}),
-                "guidance_scale": ("FLOAT", {"default": 2.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence (0-10)"}),
+                "size": (["2K", "4K"], {"default": "2K", "tooltip": "Image resolution (2K/4K)"}),
             }
         }
 
@@ -46,7 +45,6 @@ class Leon_Seedream4_API_Node(HyprLabImageGenerationNodeBase):
         input_images_array=None,
         aspect_ratio="1:1",
         size="4K",
-        guidance_scale=2.5
     ):
         if len(prompt) > 10000:
             raise ValueError("Prompt must not exceed 10,000 characters")
@@ -54,7 +52,7 @@ class Leon_Seedream4_API_Node(HyprLabImageGenerationNodeBase):
             raise ValueError("Prompt must be a non-empty string")
 
         payload = {
-            "model": "seedream-4",
+            "model": "seedream-4.5",
             "prompt": prompt,
             "response_format": response_format,
             "output_format": output_format
@@ -62,21 +60,19 @@ class Leon_Seedream4_API_Node(HyprLabImageGenerationNodeBase):
 
         # Handle image inputs from IMAGE_ARRAY
         if input_images_array is not None and isinstance(input_images_array, list):
-            input_images = input_images_array[:4]  # Max 4 images for seedream-4
+            input_images = input_images_array[:4]  # Max 4 images for seedream-4.5
             if len(input_images) == 1:
                 payload["image_input"] = input_images[0]
             elif len(input_images) > 1:
                 payload["image_input"] = input_images
-            print(f"🟢 SEEDREAM-4: Using {len(input_images)} input image(s)")
+            print(f"🟢 SEEDREAM-4.5: Using {len(input_images)} input image(s)")
 
         # Add parameters
         if aspect_ratio:
             payload["aspect_ratio"] = aspect_ratio
         if size:
             payload["size"] = size
-            print(f"🟢 SEEDREAM-4: Using size parameter '{size}' (1K/2K/4K)")
-        if guidance_scale is not None:
-            payload["guidance_scale"] = guidance_scale
+            print(f"🟢 SEEDREAM-4.5: Using size parameter '{size}' (1K/2K/4K)")
 
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
