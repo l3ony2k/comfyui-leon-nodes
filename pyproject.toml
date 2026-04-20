@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-leon-nodes"
 description = "ComfyUI custom nodes with multiple API integrations: Google Imagen (via HyprLab), FLUX Image & Kontext, Luma AI, Midjourney proxy, ImgBB upload, HyprLab upload, and utility nodes for string manipulation and image splitting."
-version = "1.0.3"
+version = "1.0.4"
 license = {text = "MIT"}
 dependencies = ["tenacity", "requests", "pillow", "torch", "numpy"]
 

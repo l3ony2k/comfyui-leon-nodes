@@ -118,13 +118,83 @@ class Leon_Pruna_Image_Edit_Node(HyprLabImageGenerationNodeBase):
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
 
+class Leon_Pruna_Image_Upscale_Node(HyprLabImageGenerationNodeBase):
+    """Pruna AI p-image-upscale model for image upscaling."""
+    CATEGORY = "Leon_API"
+    RETURN_TYPES = ("IMAGE", "STRING", "INT")
+    RETURN_NAMES = ("image", "image_url", "seed")
+    FUNCTION = "generate_pruna_image_upscale"
+
+    UPSCALE_MODES = ["target", "factor"]
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "upscale_mode": (cls.UPSCALE_MODES, {"default": "target", "tooltip": "Upscale by exact target multiplier or factor (1-8)"}),
+                "target": ("INT", {"default": 4, "min": 1, "max": 8, "tooltip": "Target value (used if upscale_mode is 'target')"}),
+                "factor": ("INT", {"default": 2, "min": 1, "max": 8, "tooltip": "Factor value (used if upscale_mode is 'factor')"}),
+                "enhance_details": ("BOOLEAN", {"default": False, "tooltip": "Enhance details in the upscaled image"}),
+                "enhance_realism": ("BOOLEAN", {"default": False, "tooltip": "Enhance realism in the upscaled image"}),
+                "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
+                "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your HyprLab/Pruna API key"}),
+                "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "How the response data should be formatted"}),
+            },
+            "optional": {
+                "image": ("IMAGE", {"tooltip": "Single input image"}),
+                "image_url": ("STRING", {"multiline": False, "default": "", "tooltip": "Hosted image URL"}),
+            }
+        }
+
+    def generate_pruna_image_upscale(
+        self,
+        upscale_mode,
+        target,
+        factor,
+        enhance_details,
+        enhance_realism,
+        output_format,
+        seed,
+        api_url,
+        api_key,
+        response_format,
+        image=None,
+        image_url=""
+    ):
+        payload = {
+            "model": "p-image-upscale",
+            "upscale_mode": upscale_mode,
+            "target": target,
+            "factor": factor,
+            "enhance_details": enhance_details,
+            "enhance_realism": enhance_realism,
+            "response_format": response_format,
+            "output_format": output_format
+        }
+
+        # Handle image inputs
+        resolved_image = self._resolve_image_input(image, image_url, field_name="image")
+        if not resolved_image:
+            raise ValueError("p-image-upscale requires an input image or image_url")
+        payload["image"] = resolved_image
+
+        return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
+
+
 # Node mappings for ComfyUI
 PRUNA_NODE_CLASS_MAPPINGS = {
     "Leon_Pruna_API_Node": Leon_Pruna_API_Node,
     "Leon_Pruna_Image_Edit_Node": Leon_Pruna_Image_Edit_Node,
+    "Leon_Pruna_Image_Upscale_Node": Leon_Pruna_Image_Upscale_Node,
 }
 
 PRUNA_NODE_DISPLAY_NAME_MAPPINGS = {
     "Leon_Pruna_API_Node": "🤖 Leon Pruna API",
     "Leon_Pruna_Image_Edit_Node": "🤖 Leon Pruna Image Edit API",
+    "Leon_Pruna_Image_Upscale_Node": "🤖 Leon Pruna Image Upscale API",
 }
