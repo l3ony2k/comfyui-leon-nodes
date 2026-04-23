@@ -44,14 +44,14 @@ class Leon_Flux_Image_API_Node(HyprLabImageGenerationNodeBase):
                 "height": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "tooltip": "Image height, multiple of 32 (FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell)"}),
                 "width": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "tooltip": "Image width, multiple of 32 (FLUX 1.1 Pro, FLUX Pro Canny, FLUX Dev, FLUX Schnell)"}),
                 "prompt_strength": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Prompt strength for image-to-image (FLUX Krea Dev only)"}),
-                "num_inference_steps": ("INT", {"default": 20, "min": 4, "max": 50, "tooltip": "Number of inference steps (FLUX Krea Dev only)"}),
-                "guidance": ("FLOAT", {"default": 3.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "Guidance scale (FLUX Krea Dev only)"}),
+                "num_inference_steps": ("INT", {"default": 28, "min": 4, "max": 50, "tooltip": "Number of inference steps (FLUX Krea Dev only)"}),
+                "guidance": ("FLOAT", {"default": 4.5, "min": 0.0, "max": 10.0, "step": 0.1, "tooltip": "Guidance scale (FLUX Krea Dev only)"}),
             }
         }
 
     def generate_flux_image(self, model_choice, prompt, response_format, output_format, seed, api_url, api_key,
                               input_image_prompt_socket=None, input_image_prompt_url="", image_prompt_strength=0.5, aspect_ratio="1:1", raw=False,
-                              steps=30, height=1024, width=1024, prompt_strength=0.8, num_inference_steps=20, guidance=3.5):
+                              steps=30, height=1024, width=1024, prompt_strength=0.8, num_inference_steps=28, guidance=4.5):
 
         actual_model_name = self.MODEL_MAPPING.get(model_choice)
         if not actual_model_name:
@@ -109,6 +109,7 @@ class Leon_Flux_2_Image_API_Node(HyprLabImageGenerationNodeBase):
 
     MODEL_MAPPING = {
         "FLUX 2 Pro": "flux-2-pro",
+        "FLUX 2 Max": "flux-2-max",
         "FLUX 2 Flex": "flux-2-flex"
     }
     ASPECT_RATIOS = ["match_input_image", "1:1", "16:9", "3:2", "2:3", "4:5", "5:4", "9:16", "3:4", "4:3"]
@@ -130,7 +131,7 @@ class Leon_Flux_2_Image_API_Node(HyprLabImageGenerationNodeBase):
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_HYPRLAB_API_KEY"}),
             },
             "optional": {
-                "input_images_array": ("IMAGE_ARRAY", {"tooltip": "Array of input images for FLUX 2 Pro (up to 8) or FLUX 2 Flex (up to 10). Connect Image Array Builder node output here."}),
+                "input_images_array": ("IMAGE_ARRAY", {"tooltip": "Array of input images for FLUX 2 models. Connect Image Array Builder node output here."}),
                 "aspect_ratio": (cls.ASPECT_RATIOS, {"default": "1:1", "tooltip": "Aspect ratio for generated image"}),
                 "resolution": (cls.RESOLUTION_CHOICES, {"default": "1 MP", "tooltip": "Image resolution"}),
                 "steps": ("INT", {"default": 30, "min": 1, "max": 50, "tooltip": "Number of steps (FLUX 2 Flex only)"}),

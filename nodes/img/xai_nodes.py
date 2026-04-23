@@ -15,13 +15,18 @@ class Leon_Grok2_Image_API_Node(HyprLabImageGenerationNodeBase):
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prompt": ("STRING", {"multiline": True, "default": "A cute cat", "tooltip": "Text description of the image to generate"}),
-                "model": (["grok-2-image"], {"default": "grok-2-image", "tooltip": "Grok image generation model"}),
+                "prompt": ("STRING", {"multiline": True, "default": "A cute cat.", "tooltip": "Text description of the image to generate"}),
+                "model": (["grok-imagine-image", "grok-imagine-image-pro"], {"default": "grok-imagine-image", "tooltip": "Grok image generation model"}),
+                "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "21:9", "9:21"], {"default": "1:1", "tooltip": "Aspect ratio of the generated image"}),
+                "resolution": (["1k", "2k"], {"default": "1k", "tooltip": "Resolution for the generated image"}),
                 "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
                 "api_key": ("STRING", {"multiline": False, "default": "YOUR_API_KEY_HERE", "tooltip": "Your HyprLab API key"}),
                 "response_format": (["url", "b64_json"], {"default": "url", "tooltip": "Format of the response data"}),
+            },
+            "optional": {
+                "image": ("IMAGE_ARRAY", {"tooltip": "Array of input images (optional)"}),
             }
         }
 
@@ -29,11 +34,14 @@ class Leon_Grok2_Image_API_Node(HyprLabImageGenerationNodeBase):
         self,
         prompt,
         model,
+        aspect_ratio,
+        resolution,
         output_format,
         seed,
         api_url,
         api_key,
-        response_format
+        response_format,
+        image=None
     ):
         if not prompt.strip():
             raise ValueError("Prompt must be a non-empty string")
@@ -41,9 +49,15 @@ class Leon_Grok2_Image_API_Node(HyprLabImageGenerationNodeBase):
         payload = {
             "model": model,
             "prompt": prompt,
-            "response_format": response_format
+            "aspect_ratio": aspect_ratio,
+            "resolution": resolution,
+            "response_format": response_format,
+            "output_format": output_format
         }
-        
+
+        if image is not None and isinstance(image, list):
+            payload["image"] = image
+
         return self._make_api_call(payload, api_url, api_key, response_format, output_format, seed)
 
 # Node mappings for ComfyUI
@@ -52,5 +66,5 @@ XAI_NODE_CLASS_MAPPINGS = {
 }
 
 XAI_NODE_DISPLAY_NAME_MAPPINGS = {
-    "Leon_Grok2_Image_API_Node": "🤖 Leon Grok 2 Image API",
+    "Leon_Grok2_Image_API_Node": "🤖 Leon Grok Imagine Image API",
 }
