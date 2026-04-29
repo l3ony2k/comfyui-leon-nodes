@@ -18,7 +18,7 @@ class Leon_Grok2_Image_API_Node(HyprLabImageGenerationNodeBase):
                 "prompt": ("STRING", {"multiline": True, "default": "A cute cat.", "tooltip": "Text description of the image to generate"}),
                 "model": (["grok-imagine-image", "grok-imagine-image-pro"], {"default": "grok-imagine-image", "tooltip": "Grok image generation model"}),
                 "aspect_ratio": (["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "21:9", "9:21"], {"default": "1:1", "tooltip": "Aspect ratio of the generated image"}),
-                "resolution": (["1k", "2k"], {"default": "1k", "tooltip": "Resolution for the generated image"}),
+                "resolution": (["1K", "2K"], {"default": "1K", "tooltip": "Resolution for the generated image"}),
                 "output_format": (["png", "jpeg", "webp"], {"default": "png", "tooltip": "Format of the output image"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "tooltip": "Random seed for reproducible results"}),
                 "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations", "tooltip": "API URL"}),
