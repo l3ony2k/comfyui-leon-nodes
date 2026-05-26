@@ -59,9 +59,14 @@ This package provides multiple categories of nodes to enhance your ComfyUI workf
 - **Recraft**
   - recraft-v3
 
+- **Wan**
+  - wan-2.7-image
+  - wan-2.7-image-pro
+
 - **Qwen**
-  - qwen-image
-  - qwen-image-edit
+  - qwen-image-2
+  - qwen-image-2-pro
+
 
 ## 🤖 LLM API Nodes
 
